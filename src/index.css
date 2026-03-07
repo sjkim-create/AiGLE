@@ -2403,3 +2403,26 @@ body {
 .sg-btn-archive.saved { background: #ECFDF5; color: #10B981; cursor: default; border: 1px solid #10B981; }
 
 
+.sg-btn-reset-prompt {
+  background: #F1F5F9;
+  border: 1px solid #E2E8F0;
+  color: #64748B;
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.sg-btn-reset-prompt:hover {
+  background: #E2E8F0;
+  color: #1E293B;
+}
+
+.sg-btn-reset-prompt:active {
+  transform: translateY(1px);
+}

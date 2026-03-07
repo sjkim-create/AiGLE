@@ -3,18 +3,18 @@ import React, { useState, useRef, useMemo } from 'react';
 const MATCH_OPTIONS = [
   { value: '', label: '- 선택 -' },
   { value: 'exact', label: '✅ 정확' },
-  { value: 'near',  label: '⚠️ 인접' },
-  { value: 'fail',  label: '❌ 불일치' },
+  { value: 'near', label: '⚠️ 인접' },
+  { value: 'fail', label: '❌ 불일치' },
 ];
 
 const ERROR_OPTIONS = [
   { value: '', label: '- 선택 -' },
-  { value: 'ocr',           label: 'OCR오류' },
+  { value: 'ocr', label: 'OCR오류' },
   { value: 'hallucination', label: 'Hallucination(허위)' },
-  { value: 'logic',         label: 'Logical Error(논리)' },
-  { value: 'rubric',        label: 'Rubric Mismatch(기준)' },
-  { value: 'format',        label: 'Format/Tone(형식)' },
-  { value: 'other',         label: 'Other' },
+  { value: 'logic', label: 'Logical Error(논리)' },
+  { value: 'rubric', label: 'Rubric Mismatch(기준)' },
+  { value: 'format', label: 'Format/Tone(형식)' },
+  { value: 'other', label: 'Other' },
 ];
 
 const CATEGORY_OPTIONS = [
@@ -45,10 +45,10 @@ export default function TestArchive({ tests, onSetTests, onRunAnalysis }) {
     items.sort((a, b) => {
       let aVal = a[sortConfig.key] || '';
       let bVal = b[sortConfig.key] || '';
-      
+
       if (typeof aVal === 'string') {
-        return sortConfig.direction === 'asc' 
-          ? aVal.localeCompare(bVal) 
+        return sortConfig.direction === 'asc'
+          ? aVal.localeCompare(bVal)
           : bVal.localeCompare(aVal);
       }
       return sortConfig.direction === 'asc' ? aVal - bVal : bVal - aVal;
@@ -88,7 +88,7 @@ export default function TestArchive({ tests, onSetTests, onRunAnalysis }) {
     <div className="ta-root">
       <header className="ta-header">
         <div className="ta-header-left">
-          <h1 className="ta-title">테스트 아카이브</h1>
+          <h1 className="ta-title">Prompt 아카이브</h1>
           <p className="ta-subtitle">스마트 채점 결과를 관리하고 데이터 분석 리포트를 생성합니다.</p>
         </div>
         <div className="ta-header-right">
@@ -104,16 +104,16 @@ export default function TestArchive({ tests, onSetTests, onRunAnalysis }) {
             <option value="전체">모든 과목</option>
             {CATEGORY_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
           </select>
-          <select 
-            className="ta-select" 
-            value={sortConfig.key} 
+          <select
+            className="ta-select"
+            value={sortConfig.key}
             onChange={(e) => setSortConfig({ ...sortConfig, key: e.target.value })}
           >
             <option value="date">날짜순</option>
             <option value="evalMode">평가모드 순</option>
             <option value="category">과제별</option>
           </select>
-          <button 
+          <button
             className="ta-sort-btn"
             onClick={() => setSortConfig({ ...sortConfig, direction: sortConfig.direction === 'asc' ? 'desc' : 'asc' })}
           >
@@ -159,18 +159,18 @@ export default function TestArchive({ tests, onSetTests, onRunAnalysis }) {
                 </td>
                 <td><span className="ta-model-badge">{t.model}</span></td>
                 <td>
-                  <select 
-                    className={`ta-table-select match-${t.matchStatus}`} 
-                    value={t.matchStatus} 
+                  <select
+                    className={`ta-table-select match-${t.matchStatus}`}
+                    value={t.matchStatus}
                     onChange={(e) => updateTest(t.id, 'matchStatus', e.target.value)}
                   >
                     {MATCH_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
                   </select>
                 </td>
                 <td>
-                  <select 
-                    className={`ta-table-select error-${t.errorType}`} 
-                    value={t.errorType} 
+                  <select
+                    className={`ta-table-select error-${t.errorType}`}
+                    value={t.errorType}
                     onChange={(e) => updateTest(t.id, 'errorType', e.target.value)}
                   >
                     {ERROR_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}

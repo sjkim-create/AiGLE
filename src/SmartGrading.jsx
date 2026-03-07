@@ -9,7 +9,7 @@ You are an expert educator and AI grading engine.
 
 ## [Objective]
 Analyze the student's answer based on the provided Model Answer and Grading Criteria.
-Provide a grade, score, and constructive feedback.
+Provide a grade and constructive feedback.
 
 ## [Grading Logic]
 1. Compare the OCR-transcribed student answer with the Model Answer.
@@ -71,7 +71,30 @@ const SmartGrading = ({ onSaveArchive }) => {
   const [exchangeRate, setExchangeRate] = useState(1350);
   const fileInputRef = useRef(null);
 
+  // --- Effect: Load Saved Defaults on Mount ---
+  React.useEffect(() => {
+    const savedOcr = localStorage.getItem('sg_default_ocr_prompt');
+    const savedSystem = localStorage.getItem('sg_default_system_prompt');
+    if (savedOcr) setOcrPrompt(savedOcr);
+    if (savedSystem) setSystemPrompt(savedSystem);
+  }, []);
+
   // --- Handlers ---
+  const saveAsProjectDefault = () => {
+    localStorage.setItem('sg_default_ocr_prompt', ocrPrompt);
+    localStorage.setItem('sg_default_system_prompt', systemPrompt);
+    alert('현재 프롬프트 내용이 기본값으로 저장되었습니다.\n이후 서비스 이용 시 해당 내용이 기본값으로 자동 반영됩니다.');
+  };
+
+  const restoreSavedDefault = () => {
+    const savedOcr = localStorage.getItem('sg_default_ocr_prompt') || DEFAULT_OCR_PROMPT;
+    const savedSystem = localStorage.getItem('sg_default_system_prompt') || DEFAULT_SYSTEM_PROMPT;
+
+    if (window.confirm('저장된 기본값으로 복구하시겠습니까?\n(현재 작성 중인 프롬프트는 사라집니다.)')) {
+      setOcrPrompt(savedOcr);
+      setSystemPrompt(savedSystem);
+    }
+  };
   const handleAssignChange = (id) => {
     setSelectedAssignId(id);
     const assign = MOCK_ASSIGNMENTS.find(a => a.id === id);
@@ -116,7 +139,7 @@ const SmartGrading = ({ onSaveArchive }) => {
 
     onSaveArchive(archiveItem);
     setIsSaved(true);
-    alert('테스트 결과가 아카이브에 저장되었습니다. [테스트 아카이브] 메뉴에서 분석을 진행하세요.');
+    alert('테스트 결과가 아카이브에 저장되었습니다. [Prompt 아카이브] 메뉴에서 분석을 진행하세요.');
   };
 
   const handleFileChange = (e) => {
@@ -141,7 +164,7 @@ const SmartGrading = ({ onSaveArchive }) => {
 
     const mockOutput = {
       ocrText: "작품의 주제는 인간의 외로움과 그것을 이겨내려는 마음입니다. 자연을 빌려 마음을 그렸습니다.",
-      gradingResult: "{\n  \"grade\": \"우수 (A)\",\n  \"score\": 95,\n  \"feedback\": \"키워드인 고독과 극복 의지를 잘 파악했습니다.\"\n}",
+      gradingResult: "{\n  \"grade\": \"우수 (A)\",\n  \"feedback\": \"키워드인 고독과 극복 의지를 잘 파악했습니다.\"\n}",
       latency: "2.42s",
       tokens: { input: 420, output: 156, total: 576 },
       costUsd: 0.00085
@@ -154,7 +177,7 @@ const SmartGrading = ({ onSaveArchive }) => {
   return (
     <div className="sg-root">
       <header className="sg-header">
-        <h1 className="sg-title">스마트 채점 프로세스</h1>
+        <h1 className="sg-title">Prompt Studio</h1>
         <p className="sg-subtitle">문항 선택부터 AI 정밀 분석까지 원스톱 채점 자동화를 경험하세요.</p>
       </header>
 
@@ -222,9 +245,24 @@ const SmartGrading = ({ onSaveArchive }) => {
             <div className="sg-card-content">
               <div className="sg-card-header">
                 <span className="sg-card-label">시스템 프롬프트 (설정)</span>
+                <div style={{ display: 'flex', gap: '8px' }}>
+                  <button
+                    className="sg-btn-reset-prompt"
+                    style={{ background: '#EBF2FF', borderColor: '#2A75F3', color: '#2A75F3' }}
+                    onClick={saveAsProjectDefault}
+                  >
+                    💾 현재 내용을 기본값으로 저장
+                  </button>
+                  <button
+                    className="sg-btn-reset-prompt"
+                    onClick={restoreSavedDefault}
+                  >
+                    ↺ 초기값으로 복구
+                  </button>
+                </div>
               </div>
               <div className="sg-prompt-group">
-                <label className="sg-prompt-label">OCR 전사 지침</label>
+                <label className="sg-prompt-label">OCR 프롬프트</label>
                 <textarea
                   className="sg-textarea-small"
                   value={ocrPrompt}
@@ -232,7 +270,7 @@ const SmartGrading = ({ onSaveArchive }) => {
                 />
               </div>
               <div className="sg-prompt-group">
-                <label className="sg-prompt-label">채점 로직 (System Prompt)</label>
+                <label className="sg-prompt-label">채점 프롬프트 (System Prompt)</label>
                 <textarea
                   className="sg-textarea-mid"
                   value={systemPrompt}
@@ -343,7 +381,7 @@ const SmartGrading = ({ onSaveArchive }) => {
 
             <div className="sg-param-row">
               <div className="sg-param-info">
-                <span>{aiModel.includes('Gemini') ? 'max_output_tokens' : 'max_tokens'} (응답 길이)</span>
+                <span>max_tokens (응답 길이)</span>
                 <span className="sg-v">{maxTokens.toLocaleString()}</span>
               </div>
               <input type="range" min="100" max="8192" step="100" value={maxTokens} onChange={(e) => setMaxTokens(parseInt(e.target.value))} className="sg-range" />

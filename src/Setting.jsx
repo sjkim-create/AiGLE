@@ -3,8 +3,9 @@ import './index.css';
 import PromptTester from './PromptTester';
 import SmartGrading from './SmartGrading';
 import AnalysisReport from './AnalysisReport';
+import Sidebar from './Sidebar';
 
-function App() {
+function Setting() {
   const [activeMenu, setActiveMenu] = useState('과제 및 채점관리');
   const [activeSubMenu, setActiveSubMenu] = useState('채점 관리');
   const [selectedTask, setSelectedTask] = useState(1);
@@ -26,7 +27,7 @@ function App() {
   ]);
   const [reflectedHistoryId, setReflectedHistoryId] = useState(1);
   const [teacherFinalFeedback, setTeacherFinalFeedback] = useState('');
-  
+
   // ── 테스트 아카이브 & 분석 관련 상태 ──
   const [archiveTests, setArchiveTests] = useState([
     {
@@ -55,13 +56,13 @@ function App() {
   // 일괄 채점 관련 상태
   const [selectedIds, setSelectedIds] = useState([]);
   const [selectedGroup, setSelectedGroup] = useState('');
-  
+
   // 일괄 채점 워크플로우 상태
   const [isBulkModalOpen, setIsBulkModalOpen] = useState(false);
   const [bulkStep, setBulkStep] = useState('checking'); // checking, not_installed, manual_install, instruction, final_bulk
   const [bulkStatus, setBulkStatus] = useState('ready'); // ready, processing, completed
   const [isNeoStudioInstalled, setIsNeoStudioInstalled] = useState(false);
-  
+
   // 백그라운드 채점 및 알림 관련 상태
   const [isConfirmCloseOpen, setIsConfirmCloseOpen] = useState(false);
   const [showFAB, setShowFAB] = useState(false);
@@ -71,7 +72,7 @@ function App() {
   const [activeSettingsMenu, setActiveSettingsMenu] = useState('환경설정');
   const [isResetModalOpen, setIsResetModalOpen] = useState(false);
   const [isFirmwareModalOpen, setIsFirmwareModalOpen] = useState(false);
-  
+
   // 일괄 채점 전용 (크래들 연결 상태)
   const [penData, setPenData] = useState([
     { id: 'PEN-001', student: '홍길동1 (1학년 1반 1번)', status: '펜 연결', data: '데이터 있음', battery: '85%', firmware: '2.1.0 (최신)' },
@@ -156,11 +157,11 @@ function App() {
       alert('그룹이 선택되어야 일괄 채점을 시작할 수 있습니다.');
       return;
     }
-    
+
     // 워크플로우 시작: 설치 확인 모달 열기
     setIsBulkModalOpen(true);
     setBulkStep('checking');
-    
+
     // 모의 확인 프로세스
     setTimeout(() => {
       if (!isNeoStudioInstalled) {
@@ -237,12 +238,12 @@ function App() {
       setStudents(prev => prev.map(s => {
         if (selectedIds.includes(s.id)) {
           // 박순정(id:3) 학생은 실패하여 미채점에 남는 것으로 시뮬레이션
-          if (s.id === 3) return s; 
+          if (s.id === 3) return s;
           return { ...s, status: '채점 확인', aiGrade: '노력' };
         }
         return s;
       }));
-      
+
       setSelectedIds([]); // 선택 초기화
     }, 5000);
   };
@@ -267,142 +268,22 @@ function App() {
   return (
     <div className="app-container">
       {/* --- 메인 사이드바 (좌측) --- */}
-      <aside className="main-sidebar">
-        <div className="logo-container">
-          <img src="/images/logo.svg" alt="AiGLE" style={{ height: '32px' }} />
-        </div>
-
-        <div 
-          className="user-profile" 
-          style={{ marginBottom: '1rem', cursor: 'pointer', position: 'relative' }}
-          onClick={() => setIsProfileDropdownOpen(!isProfileDropdownOpen)}
-        >
-          <div className="avatar">
-            <img src="/assets/images/logo.svg" alt="Avatar" style={{ opacity: 0.2 }} />
-          </div>
-          <div className="user-info">
-            <div className="name">[교사] 김 b</div>
-            <div className="id">tch20261zim</div>
-          </div>
-          
-          {isProfileDropdownOpen && (
-            <div className="user-profile-dropdown" onClick={(e) => e.stopPropagation()}>
-              <div className="dropdown-item" onClick={() => { setIsSettingsMode(true); setActiveSettingsMenu('내 정보'); setIsProfileDropdownOpen(false); }}>내 정보</div>
-              <div className="dropdown-item" onClick={() => { setIsSettingsMode(true); setActiveSettingsMenu('환경설정'); setIsProfileDropdownOpen(false); }}>환경설정</div>
-              <div className="dropdown-divider"></div>
-              <div className="dropdown-item logout">로그아웃</div>
-            </div>
-          )}
-        </div>
-
-        <nav className="nav-menu">
-          {!isSettingsMode ? (
-            <>
-              <div className={`nav-item ${activeMenu === '대시보드' ? 'active' : ''}`} onClick={() => setActiveMenu('대시보드')}>
-                 📊 대시보드
-              </div>
-              <div className={`nav-item ${activeMenu === '학생' ? 'active' : ''}`} onClick={() => setActiveMenu('학생')}>
-                 👥 학생 <span className="n-badge" style={{ marginLeft: 'auto', background: 'var(--success)' }}>N</span>
-              </div>
-              <div 
-                className={`nav-item ${activeMenu === '과제 및 채점관리' ? 'active' : ''}`} 
-                onClick={() => setActiveMenu('과제 및 채점관리')}
-              >
-                 📝 과제 및 채점관리 <span className="arrow">▼</span>
-              </div>
-              
-              {activeMenu === '과제 및 채점관리' && (
-                <div className="nav-sub-menu">
-                  <div 
-                    className={`nav-sub-item ${activeSubMenu === '과제 관리' ? 'active' : ''}`}
-                    onClick={() => setActiveSubMenu('과제 관리')}
-                  >
-                    ⊙ 과제 관리 <span className="n-badge">N</span> <span className="badge">2</span>
-                  </div>
-                  <div 
-                    className={`nav-sub-item ${activeSubMenu === '채점 관리' ? 'active' : ''}`}
-                    onClick={() => setActiveSubMenu('채점 관리')}
-                  >
-                    ⊙ 채점 관리
-                  </div>
-                </div>
-              )}
-              <div className={`nav-item ${activeMenu === '게시판' ? 'active' : ''}`} onClick={() => setActiveMenu('게시판')}>
-                 📋 게시판 <span className="n-badge" style={{ marginLeft: 'auto', background: 'var(--success)' }}>N</span>
-              </div>
-              <div 
-                className={`nav-item ${activeMenu === 'Prompt Tester' ? 'active' : ''}`} 
-                onClick={() => {
-                  setActiveMenu('Prompt Tester');
-                  if (activeMenu !== 'Prompt Tester') setActiveSubMenu('스마트 채점');
-                }}
-              >
-                 ⚗️ Prompt Tester <span className="arrow">▼</span>
-              </div>
-              
-              {activeMenu === 'Prompt Tester' && (
-                <div className="nav-sub-menu">
-                  <div 
-                    className={`nav-sub-item ${activeSubMenu === '스마트 채점' ? 'active' : ''}`}
-                    onClick={() => setActiveSubMenu('스마트 채점')}
-                  >
-                    ⊙ 스마트 채점
-                  </div>
-                  <div 
-                    className={`nav-sub-item ${activeSubMenu === '테스트 아카이브' ? 'active' : ''}`}
-                    onClick={() => setActiveSubMenu('테스트 아카이브')}
-                  >
-                    ⊙ 테스트 아카이브
-                  </div>
-                </div>
-              )}
-            </>
-          ) : (
-            <>
-              <div 
-                style={{ padding: '0.5rem 1.5rem', fontSize: '0.75rem', color: '#8A94A1', fontWeight: 700, cursor: 'pointer', marginBottom: '1rem' }}
-                onClick={() => setIsSettingsMode(false)}
-              >
-                ← 서비스로 돌아가기
-              </div>
-              <div className={`nav-item ${activeSettingsMenu === '내 정보' ? 'active' : ''}`} onClick={() => setActiveSettingsMenu('내 정보')}>
-                 👤 내 정보
-              </div>
-              <div className={`nav-item ${activeSettingsMenu === '고객센터' ? 'active' : ''}`} onClick={() => setActiveSettingsMenu('고객센터')}>
-                 🎧 고객센터
-              </div>
-              <div className={`nav-item ${activeSettingsMenu === '환경설정' ? 'active' : ''}`} onClick={() => setActiveSettingsMenu('환경설정')}>
-                 ⚙️ 환경설정
-              </div>
-            </>
-          )}
-        </nav>
-
-        <div className="sidebar-footer">
-          <a href="#" className="footer-link">교사 이용 가이드 <span>›</span></a>
-          <a href="#" className="footer-link">학생 이용 가이드 <span>›</span></a>
-          <a href="#" className="footer-link">개인정보수집 이용 동의서<span>›</span></a>
-        </div>
-      </aside>
+      <Sidebar
+        activeMenu={activeMenu}
+        setActiveMenu={setActiveMenu}
+        activeSubMenu={activeSubMenu}
+        setActiveSubMenu={setActiveSubMenu}
+        isSettingsMode={isSettingsMode}
+        setIsSettingsMode={setIsSettingsMode}
+        activeSettingsMenu={activeSettingsMenu}
+        setActiveSettingsMenu={setActiveSettingsMenu}
+        isProfileDropdownOpen={isProfileDropdownOpen}
+        setIsProfileDropdownOpen={setIsProfileDropdownOpen}
+      />
 
       {/* --- 메인 콘텐츠 영역 --- */}
-      <main className="main-wrapper" style={activeMenu === 'Prompt Tester' ? { padding: 0, overflow: 'hidden' } : {}}>
-        {activeMenu === 'Prompt Tester' ? (
-          showAnalysis ? (
-            <AnalysisReport data={analysisData} onBack={() => setShowAnalysis(false)} />
-          ) : activeSubMenu === '스마트 채점' ? (
-            <SmartGrading onSaveArchive={addArchiveItem} />
-          ) : (
-            <PromptTester 
-              tests={archiveTests} 
-              onSetTests={setArchiveTests} 
-              onRunAnalysis={(selected) => {
-                setAnalysisData(selected);
-                setShowAnalysis(true);
-              }}
-            />
-          )
-        ) : isSettingsMode ? (
+      <main className="main-wrapper" style={activeMenu === 'Prompt Studio' ? { padding: 0, overflow: 'hidden' } : {}}>
+        {isSettingsMode ? (
           <div className="settings-container" style={{ padding: '2rem', height: '100%', overflowY: 'auto' }}>
             <header className="content-header" style={{ marginBottom: '2rem' }}>
               <div className="page-title">{activeSettingsMenu}</div>
@@ -410,13 +291,13 @@ function App() {
 
             {activeSettingsMenu === '환경설정' && (
               <div className="settings-content" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(350px, 1fr))', gap: '1.5rem' }}>
-                
-                {/* 1. NeoStudio2Lite 다운로드 */}
+
+                {/* 1. AiGLE Connect 다운로드 */}
                 <section className="settings-card" style={{ background: 'white', padding: '1.5rem', borderRadius: '20px', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)', display: 'flex', flexDirection: 'column' }}>
                   <div style={{ fontSize: '1.5rem', marginBottom: '1rem' }}>📦</div>
-                  <h3 style={{ fontSize: '1.1rem', fontWeight: 800, marginBottom: '0.5rem' }}>NeoStudio2Lite 관리</h3>
+                  <h3 style={{ fontSize: '1.1rem', fontWeight: 800, marginBottom: '0.5rem' }}>AiGLE Connect 관리</h3>
                   <p style={{ fontSize: '0.85rem', color: '#8A94A1', marginBottom: '1.5rem', flex: 1 }}>자동 전송 및 크래들 연결을 위한 전용 소프트웨어의 버전을 관리합니다.</p>
-                  
+
                   <div style={{ background: '#F9FAFB', padding: '1rem', borderRadius: '12px', marginBottom: '1.25rem' }}>
                     <div style={{ fontWeight: 700, fontSize: '0.9rem' }}>현재 버전: <span style={{ color: '#4E5968' }}>2.0.5</span></div>
                     <div style={{ fontSize: '0.8rem', color: '#8A94A1' }}>최신 버전: <span style={{ color: 'var(--primary)', fontWeight: 700 }}>2.1.0</span></div>
@@ -429,7 +310,7 @@ function App() {
                   <div style={{ fontSize: '1.5rem', marginBottom: '1rem' }}>🔌</div>
                   <h3 style={{ fontSize: '1.1rem', fontWeight: 800, marginBottom: '0.5rem' }}>펜 펌웨어 업데이트</h3>
                   <p style={{ fontSize: '0.85rem', color: '#8A94A1', marginBottom: '1.5rem', flex: 1 }}>연결된 펜들의 펌웨어 상태를 확인하고 최신 버전으로 업데이트합니다.</p>
-                  
+
                   <div style={{ background: '#F9FAFB', padding: '1rem', borderRadius: '12px', marginBottom: '1.25rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <div style={{ fontWeight: 700, fontSize: '0.9rem' }}>연결된 펜: <span style={{ color: 'var(--primary)' }}>{settingsPenData.length}개</span></div>
                     {settingsPenData.some(p => p.needsUpdate) && <span style={{ fontSize: '0.75rem', background: '#FFF1F2', color: '#FF4D4D', padding: '2px 8px', borderRadius: '4px', fontWeight: 800 }}>업데이트 필요</span>}
@@ -442,12 +323,12 @@ function App() {
                   <div style={{ fontSize: '1.5rem', marginBottom: '1rem' }}>⚠️</div>
                   <h3 style={{ fontSize: '1.1rem', fontWeight: 800, marginBottom: '0.5rem', color: '#991B1B' }}>기기 초기화</h3>
                   <p style={{ fontSize: '0.85rem', color: '#8A94A1', marginBottom: '1.5rem', flex: 1 }}>모든 펜의 데이터를 즉시 삭제하고 설정을 초기 상태로 되돌립니다.</p>
-                  
+
                   <div style={{ background: '#FFF1F2', padding: '1rem', borderRadius: '12px', marginBottom: '1.25rem' }}>
                     <div style={{ fontSize: '0.8rem', color: '#991B1B', fontWeight: 600 }}>* 초기화 시 데이터 복구가 불가능합니다.</div>
                   </div>
-                  <button 
-                    className="btn-primary" 
+                  <button
+                    className="btn-primary"
                     style={{ width: '100%', padding: '0.8rem', background: '#EF4444' }}
                     onClick={() => setIsResetModalOpen(true)}
                   >
@@ -464,6 +345,21 @@ function App() {
               </div>
             )}
           </div>
+        ) : activeMenu === 'Prompt Studio' ? (
+          showAnalysis ? (
+            <AnalysisReport data={analysisData} onBack={() => setShowAnalysis(false)} />
+          ) : activeSubMenu === 'Prompt Studio' ? (
+            <SmartGrading onSaveArchive={addArchiveItem} />
+          ) : (
+            <PromptTester
+              tests={archiveTests}
+              onSetTests={setArchiveTests}
+              onRunAnalysis={(selected) => {
+                setAnalysisData(selected);
+                setShowAnalysis(true);
+              }}
+            />
+          )
         ) : (
           <>
             {activeSubMenu === '채점 관리' ? (
@@ -484,8 +380,8 @@ function App() {
                     </div>
                     <div className="task-list">
                       {tasks.map(task => (
-                        <div 
-                          key={task.id} 
+                        <div
+                          key={task.id}
                           className={`task-item ${selectedTask === task.id ? 'active' : ''}`}
                           onClick={() => setSelectedTask(task.id)}
                         >
@@ -511,17 +407,17 @@ function App() {
                         </div>
                       </div>
                       <div className="info-right">
-                         <div className="stat-item" style={{ color: '#4E5968' }}>제출률 <span className="stat-value" style={{ color: 'var(--primary)', fontWeight: 800 }}>0%</span></div>
-                         <div className="stat-item" style={{ color: '#4E5968' }}>완료율 <span className="stat-value" style={{ color: 'var(--primary)', fontWeight: 800 }}>100%</span></div>
-                         <button className="btn-primary" style={{ padding: '8px 16px', fontSize: '0.9rem' }}>채점 결과 내보내기</button>
+                        <div className="stat-item" style={{ color: '#4E5968' }}>제출률 <span className="stat-value" style={{ color: 'var(--primary)', fontWeight: 800 }}>0%</span></div>
+                        <div className="stat-item" style={{ color: '#4E5968' }}>완료율 <span className="stat-value" style={{ color: 'var(--primary)', fontWeight: 800 }}>100%</span></div>
+                        <button className="btn-primary" style={{ padding: '8px 16px', fontSize: '0.9rem' }}>채점 결과 내보내기</button>
                       </div>
                     </div>
 
                     <div className="control-bar">
                       <div className="tabs">
                         {['전체', '미채점', '채점 확인', '결과 발송'].map(tab => (
-                          <div 
-                            key={tab} 
+                          <div
+                            key={tab}
                             className={`tab ${activeTab === tab ? 'active' : ''}`}
                             onClick={() => setActiveTab(tab)}
                           >
@@ -532,8 +428,8 @@ function App() {
                       <div className="view-controls">
                         {activeTab === '미채점' && (
                           <label className="select-all-wrapper">
-                            <input 
-                              type="checkbox" 
+                            <input
+                              type="checkbox"
                               checked={selectedIds.length > 0 && selectedIds.length === students.filter(s => s.status === '미채점').length}
                               onChange={toggleAll}
                             />
@@ -542,7 +438,7 @@ function App() {
                         )}
                         <div className="btn-icon">🖿</div>
                         <div className="btn-icon">☰</div>
-                        <select 
+                        <select
                           className="select-box"
                           value={selectedGroup}
                           onChange={(e) => setSelectedGroup(e.target.value)}
@@ -559,9 +455,9 @@ function App() {
                       {filteredStudents.map(student => (
                         <div key={student.id} className="student-card">
                           {activeTab === '미채점' && (
-                            <input 
-                              type="checkbox" 
-                              className="card-checkbox" 
+                            <input
+                              type="checkbox"
+                              className="card-checkbox"
                               checked={selectedIds.includes(student.id)}
                               onChange={() => toggleStudent(student.id)}
                             />
@@ -647,8 +543,8 @@ function App() {
                     <div>
                       <div style={{ fontWeight: 800, marginBottom: '0.4rem' }}>설치 파일 다운로드</div>
                       <p style={{ fontSize: '0.85rem', color: '#4E5968', marginBottom: '0.75rem' }}>NeoStudio2Lite 설치 파일을 다운로드합니다.</p>
-                      <button 
-                        className="btn-primary" 
+                      <button
+                        className="btn-primary"
                         style={{ background: '#2A75F3', fontSize: '0.85rem', padding: '0.6rem 1.25rem' }}
                         onClick={() => setIsNeoStudioInstalled(true)}
                       >
@@ -698,147 +594,147 @@ function App() {
 
             {bulkStep === 'final_bulk' && (
               <div className="final-bulk-content" style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
-                 <div className="cradle-guide-banner" style={{ background: '#4E5968', color: 'white', padding: '1rem 1.5rem', borderRadius: '12px', marginBottom: '1.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                      <span style={{ fontSize: '1.2rem' }}>💡</span>
-                      <span style={{ fontWeight: 700 }}>크래들 이용 가이드</span>
-                    </div>
-                    <span>▼</span>
-                 </div>
+                <div className="cradle-guide-banner" style={{ background: '#4E5968', color: 'white', padding: '1rem 1.5rem', borderRadius: '12px', marginBottom: '1.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                    <span style={{ fontSize: '1.2rem' }}>💡</span>
+                    <span style={{ fontWeight: 700 }}>크래들 이용 가이드</span>
+                  </div>
+                  <span>▼</span>
+                </div>
 
-                  <div className="table-top-info" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '1rem' }}>
-                    <div style={{ fontWeight: 800, fontSize: '0.9rem', display: 'flex', gap: '1rem' }}>
-                       <span>연결된 펜 <span style={{ color: '#4E5968' }}>10개</span></span>
-                       {bulkStatus === 'processing' && (
-                         <>
-                           <span style={{ marginLeft: '0.5rem' }}>채점 중 <span style={{ color: '#2A75F3' }}>4개</span></span>
-                           <span>채점 완료 <span style={{ color: '#10B981' }}>1개</span></span>
-                           <span>실패 <span style={{ color: '#FF4D4D' }}>5개</span></span>
-                         </>
-                       )}
-                       {bulkStatus === 'completed' && (
-                         <>
-                           <span style={{ marginLeft: '0.5rem' }}>성공 <span style={{ color: '#10B981' }}>10개</span></span>
-                           <span>실패 <span style={{ color: '#FF4D4D' }}>0개</span></span>
-                         </>
-                       )}
+                <div className="table-top-info" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '1rem' }}>
+                  <div style={{ fontWeight: 800, fontSize: '0.9rem', display: 'flex', gap: '1rem' }}>
+                    <span>연결된 펜 <span style={{ color: '#4E5968' }}>10개</span></span>
+                    {bulkStatus === 'processing' && (
+                      <>
+                        <span style={{ marginLeft: '0.5rem' }}>채점 중 <span style={{ color: '#2A75F3' }}>4개</span></span>
+                        <span>채점 완료 <span style={{ color: '#10B981' }}>1개</span></span>
+                        <span>실패 <span style={{ color: '#FF4D4D' }}>5개</span></span>
+                      </>
+                    )}
+                    {bulkStatus === 'completed' && (
+                      <>
+                        <span style={{ marginLeft: '0.5rem' }}>성공 <span style={{ color: '#10B981' }}>10개</span></span>
+                        <span>실패 <span style={{ color: '#FF4D4D' }}>0개</span></span>
+                      </>
+                    )}
+                  </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '0.5rem' }}>
+                    <div style={{ display: 'flex', gap: '1rem', fontSize: '0.75rem', color: '#8A94A1' }}>
+                      <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><span style={{ width: '8px', height: '8px', background: '#D1D5DB', borderRadius: '50%' }}></span> 크래들 연결전</span>
+                      <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><span style={{ width: '8px', height: '8px', background: '#9CA3AF', borderRadius: '50%' }}></span> 크래들 연결중...</span>
+                      <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><span style={{ width: '8px', height: '8px', background: '#10B981', borderRadius: '50%' }}></span> 크래들 연결됨</span>
                     </div>
-                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '0.5rem' }}>
-                       <div style={{ display: 'flex', gap: '1rem', fontSize: '0.75rem', color: '#8A94A1' }}>
-                          <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><span style={{ width: '8px', height: '8px', background: '#D1D5DB', borderRadius: '50%' }}></span> 크래들 연결전</span>
-                          <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><span style={{ width: '8px', height: '8px', background: '#9CA3AF', borderRadius: '50%' }}></span> 크래들 연결중...</span>
-                          <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><span style={{ width: '8px', height: '8px', background: '#10B981', borderRadius: '50%' }}></span> 크래들 연결됨</span>
-                       </div>
-                       <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                          <span style={{ color: '#10B981', fontSize: '0.8rem', fontWeight: 700 }}>● 크래들 연결됨</span>
-                          <button className="btn-sync" style={{ padding: '4px 12px', fontSize: '0.75rem', borderRadius: '4px', background: '#F3F4F6', color: '#4E5968' }}>↺ 크래들 연결 새로고침</button>
-                       </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                      <span style={{ color: '#10B981', fontSize: '0.8rem', fontWeight: 700 }}>● 크래들 연결됨</span>
+                      <button className="btn-sync" style={{ padding: '4px 12px', fontSize: '0.75rem', borderRadius: '4px', background: '#F3F4F6', color: '#4E5968' }}>↺ 크래들 연결 새로고침</button>
                     </div>
-                 </div>
+                  </div>
+                </div>
 
-                  {bulkStatus === 'completed' && (
-                    <div style={{ background: '#10B981', color: 'white', padding: '0.6rem', borderRadius: '8px', textAlign: 'center', fontWeight: 700, fontSize: '0.85rem', marginBottom: '1rem', marginTop: '1rem' }}>
-                       채점 완료: 모든 펜의 채점이 끝났습니다. 채점 목록에서 결과를 확인하세요.
+                {bulkStatus === 'completed' && (
+                  <div style={{ background: '#10B981', color: 'white', padding: '0.6rem', borderRadius: '8px', textAlign: 'center', fontWeight: 700, fontSize: '0.85rem', marginBottom: '1rem', marginTop: '1rem' }}>
+                    채점 완료: 모든 펜의 채점이 끝났습니다. 채점 목록에서 결과를 확인하세요.
+                  </div>
+                )}
+                <div className="pen-list-table-wrapper" style={{ flex: 1, overflowY: 'auto', borderTop: '1px solid #1E2225' }}>
+                  <table className="pen-list-table" style={{ width: '100%', borderCollapse: 'collapse' }}>
+                    <thead>
+                      <tr style={{ background: '#F1F3F5', borderBottom: '1px solid #dee2e6' }}>
+                        <th style={{ padding: '12px 1rem', fontSize: '0.8rem', textAlign: 'left', fontWeight: 800 }}>펜 ID</th>
+                        <th style={{ padding: '12px 1rem', fontSize: '0.8rem', textAlign: 'left', fontWeight: 800 }}>학생</th>
+                        <th style={{ padding: '12px 1rem', fontSize: '0.8rem', textAlign: 'center', fontWeight: 800 }}>채점 진행</th>
+                        <th style={{ padding: '12px 1rem', fontSize: '0.8rem', textAlign: 'center', fontWeight: 800 }}>데이터</th>
+                        <th style={{ padding: '12px 1rem', fontSize: '0.8rem', textAlign: 'center', fontWeight: 800 }}>배터리</th>
+                        <th style={{ padding: '12px 1rem', fontSize: '0.8rem', textAlign: 'center', fontWeight: 800 }}>펌웨어</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {penData.map((pen, idx) => {
+                        const isNoData = pen.data === '데이터 없음';
+                        const rowColor = isNoData ? '#ADB5BD' : (pen.isWarning ? '#FF4D4D' : '#4E5968');
+
+                        return (
+                          <tr key={idx} style={{ borderBottom: '1px solid #f1f3f5', opacity: isNoData ? 0.6 : 1 }}>
+                            <td style={{ padding: '14px 1rem', fontSize: '0.85rem', color: rowColor, fontWeight: pen.isWarning ? 700 : 400 }}>{pen.id}</td>
+                            <td style={{ padding: '14px 1rem', fontSize: '0.85rem', color: rowColor, fontWeight: pen.isWarning ? 700 : 400 }}>{pen.student}</td>
+                            <td style={{ padding: '14px 1rem', fontSize: '0.85rem', textAlign: 'center' }}>
+                              {pen.status === 'AI 채점중' ? (
+                                <div style={{ position: 'relative', width: '220px', height: '24px', background: '#F3F4F6', borderRadius: '12px', overflow: 'hidden', margin: '0 auto' }}>
+                                  <div style={{ position: 'absolute', top: 0, left: 0, width: `${pen.progress}%`, height: '100%', background: '#D1E3FF' }}></div>
+                                  <span style={{ position: 'absolute', width: '100%', left: 0, top: '50%', transform: 'translateY(-50%)', fontSize: '0.75rem', color: '#4E5968', fontWeight: 700 }}>AI 채점중</span>
+                                </div>
+                              ) : pen.status === 'AI 채점 완료' ? (
+                                <div style={{ width: '220px', background: '#D1E3FF', borderRadius: '12px', padding: '4px 0', fontSize: '0.75rem', color: '#2A75F3', fontWeight: 800, margin: '0 auto' }}>
+                                  AI 채점 완료
+                                </div>
+                              ) : pen.status === '채점 실패' ? (
+                                <div style={{ width: '220px', background: '#FFF1F2', borderRadius: '12px', padding: '4px 0', fontSize: '0.75rem', color: '#FF4D4D', fontWeight: 800, margin: '0 auto' }}>
+                                  채점 실패
+                                </div>
+                              ) : (
+                                <div style={{ background: '#F3F4F6', borderRadius: '15px', padding: '4px 20px', fontSize: '0.75rem', color: isNoData ? '#ADB5BD' : (pen.isWarning ? '#FF4D4D' : '#8A94A1'), display: 'inline-block', minWidth: '120px' }}>
+                                  {pen.status}
+                                </div>
+                              )}
+                            </td>
+                            <td style={{ padding: '14px 1rem', fontSize: '0.85rem', textAlign: 'center', color: pen.data === '데이터 삭제' ? '#ADB5BD' : (isNoData ? '#ADB5BD' : '#2A75F3'), fontWeight: 700 }}>{pen.data}</td>
+                            <td style={{ padding: '14px 1rem', fontSize: '0.85rem', textAlign: 'center', color: rowColor }}>{pen.battery}</td>
+                            <td style={{ padding: '14px 1rem', fontSize: '0.85rem', textAlign: 'center' }}>
+                              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+                                <span style={{ fontSize: '0.8rem', color: isNoData ? '#ADB5BD' : (pen.needsUpdate ? '#FF4D4D' : '#8A94A1') }}>{pen.firmware}</span>
+                                {pen.needsUpdate && !pen.updating && !isNoData && (
+                                  <button className="btn-update-mini" style={{ background: '#FF4D4D', color: 'white', border: 'none', borderRadius: '4px', padding: '2px 8px', fontSize: '0.7rem', fontWeight: 700, cursor: 'pointer' }} onClick={startFirmwareUpdate}>업데이트</button>
+                                )}
+                                {pen.updating && (
+                                  <div style={{ width: '60px', height: '6px', background: '#E5E7EB', borderRadius: '3px', overflow: 'hidden' }}>
+                                    <div style={{ width: `${updatePercent}%`, background: '#2A75F3', height: '100%' }}></div>
+                                  </div>
+                                )}
+                              </div>
+                            </td>
+                          </tr>
+                        )
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+
+                <div className="bulk-footer-btns" style={{ display: 'flex', justifyContent: 'space-between', marginTop: '2rem' }}>
+                  {bulkStatus === 'ready' ? (
+                    <>
+                      <button className={`btn-bulk-footer ${isUpdating ? 'updating' : ''}`} style={{ background: '#EBF2FF', color: '#2A75F3', border: 'none', padding: '0.8rem 1.5rem', borderRadius: '8px', fontWeight: 700, fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
+                        {isUpdating ? '↺ 업데이트 진행 중...' : '↺ 펌웨어 일괄 업데이트'}
+                      </button>
+                      <button
+                        className={`btn-primary ${penData.some(p => p.needsUpdate) || isUpdating ? 'disabled' : ''}`}
+                        style={{
+                          padding: '0.8rem 4rem',
+                          background: (penData.some(p => p.needsUpdate) || isUpdating) ? '#E9ECEF' : '#2A75F3',
+                          color: (penData.some(p => p.needsUpdate) || isUpdating) ? '#ADB5BD' : 'white',
+                          pointerEvents: (penData.some(p => p.needsUpdate) || isUpdating) ? 'none' : 'auto',
+                          cursor: (penData.some(p => p.needsUpdate) || isUpdating) ? 'not-allowed' : 'pointer'
+                        }}
+                        onClick={startGrading}
+                      >
+                        일괄 채점 시작
+                      </button>
+                    </>
+                  ) : (
+                    <div style={{ width: '100%', display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: '1rem' }}>
+                      <div style={{ position: 'relative' }}>
+                        <div style={{ background: '#991B1B', color: 'white', width: '20px', height: '20px', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.7rem', fontWeight: 800, position: 'absolute', top: '-8px', left: '-8px', zIndex: 1 }}>{bulkStatus === 'completed' ? '8' : '7'}</div>
+                      </div>
+                      <button
+                        className="btn-card-detail"
+                        style={{ padding: '0.8rem 4rem', background: '#D1D5DB', border: 'none', borderRadius: '8px', color: '#4E5968', fontWeight: 800 }}
+                        onClick={handleCloseProcessing}
+                      >
+                        닫기
+                      </button>
                     </div>
                   )}
-                 <div className="pen-list-table-wrapper" style={{ flex: 1, overflowY: 'auto', borderTop: '1px solid #1E2225' }}>
-                    <table className="pen-list-table" style={{ width: '100%', borderCollapse: 'collapse' }}>
-                       <thead>
-                          <tr style={{ background: '#F1F3F5', borderBottom: '1px solid #dee2e6' }}>
-                             <th style={{ padding: '12px 1rem', fontSize: '0.8rem', textAlign: 'left', fontWeight: 800 }}>펜 ID</th>
-                             <th style={{ padding: '12px 1rem', fontSize: '0.8rem', textAlign: 'left', fontWeight: 800 }}>학생</th>
-                             <th style={{ padding: '12px 1rem', fontSize: '0.8rem', textAlign: 'center', fontWeight: 800 }}>채점 진행</th>
-                             <th style={{ padding: '12px 1rem', fontSize: '0.8rem', textAlign: 'center', fontWeight: 800 }}>데이터</th>
-                             <th style={{ padding: '12px 1rem', fontSize: '0.8rem', textAlign: 'center', fontWeight: 800 }}>배터리</th>
-                             <th style={{ padding: '12px 1rem', fontSize: '0.8rem', textAlign: 'center', fontWeight: 800 }}>펌웨어</th>
-                          </tr>
-                       </thead>
-                       <tbody>
-                          {penData.map((pen, idx) => {
-                             const isNoData = pen.data === '데이터 없음';
-                             const rowColor = isNoData ? '#ADB5BD' : (pen.isWarning ? '#FF4D4D' : '#4E5968');
-                             
-                             return (
-                               <tr key={idx} style={{ borderBottom: '1px solid #f1f3f5', opacity: isNoData ? 0.6 : 1 }}>
-                                  <td style={{ padding: '14px 1rem', fontSize: '0.85rem', color: rowColor, fontWeight: pen.isWarning ? 700 : 400 }}>{pen.id}</td>
-                                  <td style={{ padding: '14px 1rem', fontSize: '0.85rem', color: rowColor, fontWeight: pen.isWarning ? 700 : 400 }}>{pen.student}</td>
-                                  <td style={{ padding: '14px 1rem', fontSize: '0.85rem', textAlign: 'center' }}>
-                                     {pen.status === 'AI 채점중' ? (
-                                       <div style={{ position: 'relative', width: '220px', height: '24px', background: '#F3F4F6', borderRadius: '12px', overflow: 'hidden', margin: '0 auto' }}>
-                                         <div style={{ position: 'absolute', top: 0, left: 0, width: `${pen.progress}%`, height: '100%', background: '#D1E3FF' }}></div>
-                                         <span style={{ position: 'absolute', width: '100%', left: 0, top: '50%', transform: 'translateY(-50%)', fontSize: '0.75rem', color: '#4E5968', fontWeight: 700 }}>AI 채점중</span>
-                                       </div>
-                                     ) : pen.status === 'AI 채점 완료' ? (
-                                       <div style={{ width: '220px', background: '#D1E3FF', borderRadius: '12px', padding: '4px 0', fontSize: '0.75rem', color: '#2A75F3', fontWeight: 800, margin: '0 auto' }}>
-                                          AI 채점 완료
-                                       </div>
-                                     ) : pen.status === '채점 실패' ? (
-                                       <div style={{ width: '220px', background: '#FFF1F2', borderRadius: '12px', padding: '4px 0', fontSize: '0.75rem', color: '#FF4D4D', fontWeight: 800, margin: '0 auto' }}>
-                                          채점 실패
-                                       </div>
-                                     ) : (
-                                       <div style={{ background: '#F3F4F6', borderRadius: '15px', padding: '4px 20px', fontSize: '0.75rem', color: isNoData ? '#ADB5BD' : (pen.isWarning ? '#FF4D4D' : '#8A94A1'), display: 'inline-block', minWidth: '120px' }}>
-                                          {pen.status}
-                                       </div>
-                                     )}
-                                  </td>
-                                  <td style={{ padding: '14px 1rem', fontSize: '0.85rem', textAlign: 'center', color: pen.data === '데이터 삭제' ? '#ADB5BD' : (isNoData ? '#ADB5BD' : '#2A75F3'), fontWeight: 700 }}>{pen.data}</td>
-                                  <td style={{ padding: '14px 1rem', fontSize: '0.85rem', textAlign: 'center', color: rowColor }}>{pen.battery}</td>
-                                  <td style={{ padding: '14px 1rem', fontSize: '0.85rem', textAlign: 'center' }}>
-                                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
-                                        <span style={{ fontSize: '0.8rem', color: isNoData ? '#ADB5BD' : (pen.needsUpdate ? '#FF4D4D' : '#8A94A1') }}>{pen.firmware}</span>
-                                        {pen.needsUpdate && !pen.updating && !isNoData && (
-                                           <button className="btn-update-mini" style={{ background: '#FF4D4D', color: 'white', border: 'none', borderRadius: '4px', padding: '2px 8px', fontSize: '0.7rem', fontWeight: 700, cursor: 'pointer' }} onClick={startFirmwareUpdate}>업데이트</button>
-                                        )}
-                                        {pen.updating && (
-                                           <div style={{ width: '60px', height: '6px', background: '#E5E7EB', borderRadius: '3px', overflow: 'hidden' }}>
-                                              <div style={{ width: `${updatePercent}%`, background: '#2A75F3', height: '100%' }}></div>
-                                           </div>
-                                        )}
-                                     </div>
-                                  </td>
-                               </tr>
-                             )
-                          })}
-                       </tbody>
-                    </table>
-                 </div>
-
-                  <div className="bulk-footer-btns" style={{ display: 'flex', justifyContent: 'space-between', marginTop: '2rem' }}>
-                     {bulkStatus === 'ready' ? (
-                       <>
-                         <button className={`btn-bulk-footer ${isUpdating ? 'updating' : ''}`} style={{ background: '#EBF2FF', color: '#2A75F3', border: 'none', padding: '0.8rem 1.5rem', borderRadius: '8px', fontWeight: 700, fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
-                            {isUpdating ? '↺ 업데이트 진행 중...' : '↺ 펌웨어 일괄 업데이트'}
-                         </button>
-                         <button 
-                           className={`btn-primary ${penData.some(p => p.needsUpdate) || isUpdating ? 'disabled' : ''}`} 
-                           style={{ 
-                             padding: '0.8rem 4rem', 
-                             background: (penData.some(p => p.needsUpdate) || isUpdating) ? '#E9ECEF' : '#2A75F3', 
-                             color: (penData.some(p => p.needsUpdate) || isUpdating) ? '#ADB5BD' : 'white', 
-                             pointerEvents: (penData.some(p => p.needsUpdate) || isUpdating) ? 'none' : 'auto',
-                             cursor: (penData.some(p => p.needsUpdate) || isUpdating) ? 'not-allowed' : 'pointer'
-                           }}
-                           onClick={startGrading}
-                         >
-                           일괄 채점 시작
-                         </button>
-                       </>
-                     ) : (
-                       <div style={{ width: '100%', display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: '1rem' }}>
-                         <div style={{ position: 'relative' }}>
-                           <div style={{ background: '#991B1B', color: 'white', width: '20px', height: '20px', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.7rem', fontWeight: 800, position: 'absolute', top: '-8px', left: '-8px', zIndex: 1 }}>{bulkStatus === 'completed' ? '8' : '7'}</div>
-                         </div>
-                         <button 
-                           className="btn-card-detail" 
-                           style={{ padding: '0.8rem 4rem', background: '#D1D5DB', border: 'none', borderRadius: '8px', color: '#4E5968', fontWeight: 800 }}
-                           onClick={handleCloseProcessing}
-                         >
-                           닫기
-                         </button>
-                       </div>
-                     )}
-                  </div>
+                </div>
               </div>
             )}
 
@@ -863,7 +759,7 @@ function App() {
           <div className="modal-container" onClick={e => e.stopPropagation()}>
             <button className="btn-modal-close" onClick={() => setIsModalOpen(false)}>×</button>
             <div className="step-banner">
-              {selectedStudent?.status === '미채점' 
+              {selectedStudent?.status === '미채점'
                 ? 'STEP 1. 학생 답안 제출 대기 펜을 연결하고 제출된 데이터를 불러온 뒤 AI 채점을 시작하세요.'
                 : 'AI 채점 결과를 확인하고 최종 피드백을 작성하여 검토를 완료하세요.'}
             </div>
@@ -885,8 +781,8 @@ function App() {
 
                   <div className="modal-question-tabs" style={{ padding: '0 0 1.5rem 0' }}>
                     {questions.map(q => (
-                      <div 
-                        key={q.id} 
+                      <div
+                        key={q.id}
                         className={`q-tab ${activeQuestion === q.id ? 'active' : ''}`}
                         onClick={() => setActiveQuestion(q.id)}
                       >
@@ -905,10 +801,10 @@ function App() {
                     </div>
                     <div className="page-indicator">1/1</div>
                     <div style={{ padding: '4rem', height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
-                       <img src="/assets/images/sample_paper.png" alt="Scan Area" style={{ maxWidth: '100%', border: '1px solid #eee', opacity: 0.3, marginBottom: '1rem' }} />
-                       <p style={{ color: '#8A94A1', fontSize: '0.9rem', fontWeight: 600 }}>
-                         {selectedStudent?.status === '미채점' ? '학생의 펜 데이터를 호출하는 중입니다...' : '필기 데이터를 불러왔습니다.'}
-                       </p>
+                      <img src="/assets/images/sample_paper.png" alt="Scan Area" style={{ maxWidth: '100%', border: '1px solid #eee', opacity: 0.3, marginBottom: '1rem' }} />
+                      <p style={{ color: '#8A94A1', fontSize: '0.9rem', fontWeight: 600 }}>
+                        {selectedStudent?.status === '미채점' ? '학생의 펜 데이터를 호출하는 중입니다...' : '필기 데이터를 불러왔습니다.'}
+                      </p>
                     </div>
                   </div>
                 </div>
@@ -986,7 +882,7 @@ function App() {
                             <div key={h.id} className="history-card">
                               <div className="history-card-header">
                                 <span className="history-num">{h.label}</span>
-                                <button 
+                                <button
                                   className={`btn-reflect-check ${reflectedHistoryId === h.id ? 'active' : ''}`}
                                   onClick={() => setReflectedHistoryId(h.id)}
                                 >
@@ -1014,7 +910,7 @@ function App() {
                   <div className="ai-feedback-panel" style={{ borderRight: '1px solid rgba(255,255,255,0.1)' }}>
                     <div className="panel-header">
                       <span>AI 피드백 (참고용)</span>
-                      <button 
+                      <button
                         className="btn-copy-mini"
                         onClick={() => setTeacherFinalFeedback(gradingHistory.find(h => h.id === reflectedHistoryId)?.feedback || '')}
                       >
@@ -1029,7 +925,7 @@ function App() {
                     <div className="panel-header">
                       <span>교사 최종 피드백 (교사 작성)</span>
                     </div>
-                    <textarea 
+                    <textarea
                       className="teacher-input-box"
                       placeholder="AI 피드백을 참고하여 학생에게 전달할 최종 피드백을 입력하세요."
                       value={teacherFinalFeedback}
@@ -1043,7 +939,7 @@ function App() {
 
             <footer className="modal-footer">
               {selectedStudent?.status === '미채점' ? (
-                <button className="btn-invalid" onClick={() => { if(window.confirm('이 학생의 제출을 무효 처리하시겠습니까?')) setIsModalOpen(false); }}>
+                <button className="btn-invalid" onClick={() => { if (window.confirm('이 학생의 제출을 무효 처리하시겠습니까?')) setIsModalOpen(false); }}>
                   무효처리
                 </button>
               ) : (
@@ -1103,16 +999,16 @@ function App() {
             </div>
 
             <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '1rem' }}>
-              <button 
-                className="btn-card-detail" 
+              <button
+                className="btn-card-detail"
                 style={{ width: '150px' }}
                 onClick={() => setIsFirmwareModalOpen(false)}
               >
                 닫기
               </button>
               {settingsPenData.some(p => p.needsUpdate) && (
-                <button 
-                  className="btn-primary" 
+                <button
+                  className="btn-primary"
                   style={{ background: '#FF4D4D', padding: '0.8rem 2rem' }}
                   onClick={() => {
                     alert('일괄 업데이트를 시작합니다.');
@@ -1139,15 +1035,15 @@ function App() {
               <span style={{ color: '#EF4444', fontWeight: 700 }}>초기화 후 삭제된 데이터는 되돌릴 수 없습니다.</span>
             </p>
             <div style={{ display: 'flex', gap: '0.75rem' }}>
-              <button 
-                className="btn-card-detail" 
+              <button
+                className="btn-card-detail"
                 style={{ flex: 1, padding: '0.8rem' }}
                 onClick={() => setIsResetModalOpen(false)}
               >
                 취소
               </button>
-              <button 
-                className="btn-primary" 
+              <button
+                className="btn-primary"
                 style={{ flex: 1, padding: '0.8rem', background: '#EF4444' }}
                 onClick={() => {
                   alert('모든 펜의 데이터가 초기화되었습니다.');
@@ -1169,22 +1065,22 @@ function App() {
               <div style={{ background: '#991B1B', color: 'white', width: '24px', height: '24px', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.8rem', fontWeight: 800, position: 'absolute', top: '-10px', left: '-25px' }}>7</div>
               <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='64' viewBox='0 0 24 24' fill='none' stroke='%231E2225' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4'%3E%3C/path%3E%3Cpolyline points='16 17 21 12 16 7'%3E%3C/polyline%3E%3Cline x1='21' y1='12' x2='9' y2='12'%3E%3C/line%3E%3C/svg%3E" alt="Exit" style={{ width: '64px', height: '64px' }} />
             </div>
-            
+
             <p style={{ fontSize: '1.1rem', fontWeight: 700, color: '#1E2225', lineHeight: '1.6', marginBottom: '2rem' }}>
               페이지를 벗어나도 AI 채점은 멈추지 않습니다.<br />
               20분 이내로 채점이 완료 예정입니다.
             </p>
 
             <div style={{ display: 'flex', gap: '1rem' }}>
-              <button 
-                className="btn-card-detail" 
+              <button
+                className="btn-card-detail"
                 style={{ flex: 1, padding: '1rem', background: '#D1E3FF', color: '#1E2225', border: 'none' }}
                 onClick={() => setIsConfirmCloseOpen(false)}
               >
                 계속 채점하기
               </button>
-              <button 
-                className="btn-primary" 
+              <button
+                className="btn-primary"
                 style={{ flex: 1, padding: '1rem', background: '#EF4444' }}
                 onClick={proceedToBackground}
               >
@@ -1197,7 +1093,7 @@ function App() {
 
       {/* --- 백그라운드 채점 FAB --- */}
       {showFAB && (
-        <div 
+        <div
           className="grading-fab"
           style={{
             position: 'fixed',
@@ -1231,11 +1127,11 @@ function App() {
               }
             `}
           </style>
-          <div className="fab-spinner" style={{ 
-            width: '24px', 
-            height: '24px', 
-            border: '3px solid #EBF2FF', 
-            borderTopColor: '#2A75F3', 
+          <div className="fab-spinner" style={{
+            width: '24px',
+            height: '24px',
+            border: '3px solid #EBF2FF',
+            borderTopColor: '#2A75F3',
             borderRadius: '50%',
             animation: isGradingFinished ? 'none' : 'spin 1s linear infinite',
             background: isGradingFinished ? '#10B981' : 'transparent',
@@ -1260,4 +1156,4 @@ function App() {
   );
 }
 
-export default App;
+export default Setting;
