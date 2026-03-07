@@ -1,5 +1,8 @@
 import React, { useState } from 'react';
 import './index.css';
+import PromptTester from './PromptTester';
+import SmartGrading from './SmartGrading';
+import AnalysisReport from './AnalysisReport';
 
 function App() {
   const [activeMenu, setActiveMenu] = useState('과제 및 채점관리');
@@ -23,6 +26,31 @@ function App() {
   ]);
   const [reflectedHistoryId, setReflectedHistoryId] = useState(1);
   const [teacherFinalFeedback, setTeacherFinalFeedback] = useState('');
+  
+  // ── 테스트 아카이브 & 분석 관련 상태 ──
+  const [archiveTests, setArchiveTests] = useState([
+    {
+      id: 'TC-001',
+      assignmentId: 'assign-003',
+      title: '방정식 기초 테스트',
+      status: 'success',
+      matchStatus: 'exact',
+      errorType: '',
+      category: '수학',
+      model: 'Gemini 3.1 Flash',
+      evalMode: '자동평가',
+      latency: '2.4s',
+      tokens: { input: 312, output: 140, total: 452 },
+      costUsd: 0.0006,
+      date: new Date().toISOString()
+    }
+  ]);
+  const [showAnalysis, setShowAnalysis] = useState(false);
+  const [analysisData, setAnalysisData] = useState([]);
+
+  const addArchiveItem = (item) => {
+    setArchiveTests(prev => [item, ...prev]);
+  };
 
   // 일괄 채점 관련 상태
   const [selectedIds, setSelectedIds] = useState([]);
@@ -302,6 +330,32 @@ function App() {
               <div className={`nav-item ${activeMenu === '게시판' ? 'active' : ''}`} onClick={() => setActiveMenu('게시판')}>
                  📋 게시판 <span className="n-badge" style={{ marginLeft: 'auto', background: 'var(--success)' }}>N</span>
               </div>
+              <div 
+                className={`nav-item ${activeMenu === 'Prompt Tester' ? 'active' : ''}`} 
+                onClick={() => {
+                  setActiveMenu('Prompt Tester');
+                  if (activeMenu !== 'Prompt Tester') setActiveSubMenu('스마트 채점');
+                }}
+              >
+                 ⚗️ Prompt Tester <span className="arrow">▼</span>
+              </div>
+              
+              {activeMenu === 'Prompt Tester' && (
+                <div className="nav-sub-menu">
+                  <div 
+                    className={`nav-sub-item ${activeSubMenu === '스마트 채점' ? 'active' : ''}`}
+                    onClick={() => setActiveSubMenu('스마트 채점')}
+                  >
+                    ⊙ 스마트 채점
+                  </div>
+                  <div 
+                    className={`nav-sub-item ${activeSubMenu === '테스트 아카이브' ? 'active' : ''}`}
+                    onClick={() => setActiveSubMenu('테스트 아카이브')}
+                  >
+                    ⊙ 테스트 아카이브
+                  </div>
+                </div>
+              )}
             </>
           ) : (
             <>
@@ -332,8 +386,23 @@ function App() {
       </aside>
 
       {/* --- 메인 콘텐츠 영역 --- */}
-      <main className="main-wrapper">
-        {isSettingsMode ? (
+      <main className="main-wrapper" style={activeMenu === 'Prompt Tester' ? { padding: 0, overflow: 'hidden' } : {}}>
+        {activeMenu === 'Prompt Tester' ? (
+          showAnalysis ? (
+            <AnalysisReport data={analysisData} onBack={() => setShowAnalysis(false)} />
+          ) : activeSubMenu === '스마트 채점' ? (
+            <SmartGrading onSaveArchive={addArchiveItem} />
+          ) : (
+            <PromptTester 
+              tests={archiveTests} 
+              onSetTests={setArchiveTests} 
+              onRunAnalysis={(selected) => {
+                setAnalysisData(selected);
+                setShowAnalysis(true);
+              }}
+            />
+          )
+        ) : isSettingsMode ? (
           <div className="settings-container" style={{ padding: '2rem', height: '100%', overflowY: 'auto' }}>
             <header className="content-header" style={{ marginBottom: '2rem' }}>
               <div className="page-title">{activeSettingsMenu}</div>
