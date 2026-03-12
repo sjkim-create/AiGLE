@@ -59,7 +59,6 @@ const AnalysisReport = ({ data, onBack }) => {
   return (
     <div className="ar-root">
       <header className="ar-header no-print">
-        <button className="ar-back-btn" onClick={onBack}>← 아카이브로 돌아가기</button>
         <div className="ar-header-main">
           <h1 className="ar-title">AI 채점 성능 분석 리포트</h1>
           <button className="ar-print-btn" onClick={handlePrint}>🖨️ PDF 리포트 출력</button>

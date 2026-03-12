@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import './index.css';
-import PromptTester from './PromptTester';
-import SmartGrading from './SmartGrading';
+import PromptArchive from './PromptArchive';
+import PromptStudio from './PromptStudio';
 import AnalysisReport from './AnalysisReport';
 import Sidebar from './Sidebar';
 
@@ -221,7 +221,7 @@ function Setting() {
   const handleSettingsBulkUpdate = () => {
     // 배터리 체크 및 최신 버전 체크
     const updatablePens = settingsPenData.filter(p => p.needsUpdate && parseInt(p.battery) >= 20);
-    
+
     if (updatablePens.length === 0) {
       const hasLowBattery = settingsPenData.some(p => p.needsUpdate && parseInt(p.battery) < 20);
       if (hasLowBattery) {
@@ -238,7 +238,7 @@ function Setting() {
       }
       return p;
     }));
-    
+
     const interval = setInterval(() => {
       setSettingsPenData(prev => {
         const anyUpdating = prev.some(p => p.updating && p.progress < 100 && p.status !== 'error');
@@ -250,7 +250,7 @@ function Setting() {
           }
           return prev.map(p => (p.status === 'updating' && p.progress >= 100) ? { ...p, updating: false, status: 'success', needsUpdate: false, firmware: '2.1.0 (최신)' } : p);
         }
-        
+
         return prev.map(p => {
           if (p.updating && p.status === 'updating') {
             // 랜덤 연결 실패 시뮬레이션 (1% 확률)
@@ -278,7 +278,7 @@ function Setting() {
   const handleResetAll = () => {
     // 일부 실패 시뮬레이션
     const failedCount = Math.random() > 0.7 ? 2 : 0;
-    
+
     if (failedCount > 0) {
       alert(`일부 기기(${failedCount}개)의 초기화에 실패했습니다. 하드웨어 연결을 확인해주세요.`);
     } else {
@@ -443,9 +443,9 @@ function Setting() {
           showAnalysis ? (
             <AnalysisReport data={analysisData} onBack={() => setShowAnalysis(false)} />
           ) : activeSubMenu === 'Prompt Studio' ? (
-            <SmartGrading onSaveArchive={addArchiveItem} />
+            <PromptStudio onSaveArchive={addArchiveItem} />
           ) : (
-            <PromptTester
+            <PromptArchive
               tests={archiveTests}
               onSetTests={setArchiveTests}
               onRunAnalysis={(selected) => {
@@ -1084,7 +1084,7 @@ function Setting() {
                   ) : settingsPenData.map((pen, idx) => (
                     <tr key={idx} style={{ borderBottom: '1px solid #f1f3f5' }}>
                       <td style={{ padding: '10px 12px', textAlign: 'center' }}>
-                        <button 
+                        <button
                           onClick={() => handleRemovePen(pen.mac)}
                           style={{ background: 'none', border: 'none', color: '#EF4444', cursor: 'pointer', fontSize: '1.1rem', padding: '0 4px' }}
                           title="삭제"
@@ -1110,7 +1110,7 @@ function Setting() {
                         ) : pen.status === 'error' ? (
                           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}>
                             <span style={{ color: '#EF4444', fontWeight: 800, fontSize: '0.8rem' }}>연결 실패</span>
-                            <button 
+                            <button
                               onClick={() => handleRetryUpdate(pen.mac)}
                               style={{ padding: '2px 8px', fontSize: '0.7rem', background: '#F3F4F6', border: '1px solid #D1D5DB', borderRadius: '4px', cursor: 'pointer' }}
                             >
@@ -1142,8 +1142,8 @@ function Setting() {
               {settingsPenData.length > 0 && settingsPenData.some(p => p.needsUpdate) && (
                 <button
                   className={`btn-primary ${settingsPenData.some(p => p.updating) || settingsPenData.some(p => p.needsUpdate && parseInt(p.battery) < 20) ? 'disabled' : ''}`}
-                  style={{ 
-                    background: (settingsPenData.some(p => p.updating) || settingsPenData.some(p => p.needsUpdate && parseInt(p.battery) < 20)) ? '#E9ECEF' : '#FF4D4D', 
+                  style={{
+                    background: (settingsPenData.some(p => p.updating) || settingsPenData.some(p => p.needsUpdate && parseInt(p.battery) < 20)) ? '#E9ECEF' : '#FF4D4D',
                     padding: '0.8rem 2rem',
                     color: (settingsPenData.some(p => p.updating) || settingsPenData.some(p => p.needsUpdate && parseInt(p.battery) < 20)) ? '#ADB5BD' : 'white',
                     cursor: (settingsPenData.some(p => p.updating) || settingsPenData.some(p => p.needsUpdate && parseInt(p.battery) < 20)) ? 'not-allowed' : 'pointer',
@@ -1151,8 +1151,8 @@ function Setting() {
                   }}
                   onClick={handleSettingsBulkUpdate}
                 >
-                  {settingsPenData.some(p => p.updating) 
-                    ? '업데이트 진행 중...' 
+                  {settingsPenData.some(p => p.updating)
+                    ? '업데이트 진행 중...'
                     : '일괄 업데이트 시작'}
                 </button>
               )}
