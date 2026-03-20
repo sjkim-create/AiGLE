@@ -124,12 +124,19 @@ function Setting() {
   ];
 
   const [students, setStudents] = useState([
-    { id: 11, name: '정지훈', grade: '5학년 2반 3번', aiGrade: '노력', teacherGrade: '보통', status: '채점 확인' },
-    { id: 1, name: '김순정', grade: '1학년 1반 1번', aiGrade: '-', teacherGrade: '-', status: '미채점' },
-    { id: 2, name: '이순정', grade: '1학년 1반 2번', aiGrade: '-', teacherGrade: '-', status: '미채점' },
-    { id: 3, name: '박순정', grade: '1학년 1반 3번', aiGrade: '-', teacherGrade: '-', status: '미채점' },
-    { id: 9, name: '일반테스트', grade: '6학년 1반 1번', aiGrade: '노력', teacherGrade: '노력', status: '결과 발송 완료' },
-    { id: 10, name: '이하늘', grade: '4학년 1반 1번', aiGrade: '노력', teacherGrade: '노력', status: '결과 발송 완료' }
+    { id: 11, name: '정지훈', grade: '5학년 2반 3번', submitType: 'pen', aiGrade: '노력', teacherGrade: '보통', status: '채점 확인' },
+    { id: 1, name: '김순정', grade: '1학년 1반 1번', submitType: 'pen', aiGrade: '-', teacherGrade: '-', status: '미채점' },
+    { id: 2, name: '이순정', grade: '1학년 1반 2번', submitType: 'pen', aiGrade: '-', teacherGrade: '-', status: '미채점' },
+    { id: 3, name: '박순정', grade: '1학년 1반 3번', submitType: 'pen', aiGrade: '-', teacherGrade: '-', status: '미채점' },
+    { id: 4, name: '홍길동', grade: '1학년 1반 5번', submitType: 'ocr', aiGrade: '-', teacherGrade: '-', status: '미채점' },
+    { id: 5, name: '김민지', grade: '1학년 1반 12번', submitType: 'ocr', aiGrade: '-', teacherGrade: '-', status: '미채점' },
+    { id: 9, name: '일반테스트', grade: '6학년 1반 1번', submitType: 'pen', aiGrade: '노력', teacherGrade: '노력', status: '결과 발송 완료' },
+    { id: 10, name: '이하늘', grade: '4학년 1반 1번', submitType: 'ocr', aiGrade: '노력', teacherGrade: '노력', status: '결과 발송 완료' }
+  ]);
+
+  const [ocrData, setOcrData] = useState([
+    { id: 'OCR-001', name: '홍길동', grade: '1학년 1반 5번', status: '대기 중', progress: 0, source: 'homework_1.jpg', dataStatus: '이미지 확보 완료', fileType: 'JPG (2.1MB)' },
+    { id: 'OCR-002', name: '김민지', grade: '1학년 1반 12번', status: '대기 중', progress: 0, source: 'scan_text_2.png', dataStatus: '이미지 확보 완료', fileType: 'PNG (3.4MB)' }
   ]);
 
   const currentTask = tasks.find(t => t.id === selectedTask) || tasks[1];
@@ -313,6 +320,11 @@ function Setting() {
       { id: 'PEN-010', student: '홍길동10 (1학년 1반 10번)', status: '펜 연결', data: '데이터 있음', battery: '85%', firmware: '2.1.0 (최신)' },
     ]);
 
+    setOcrData([
+      { id: 'OCR-001', name: '홍길동', grade: '1학년 1반 5번', status: 'AI 채점중', progress: 40, source: 'homework_1.jpg', dataStatus: 'OCR 추출 중...', fileType: 'JPG (2.1MB)' },
+      { id: 'OCR-002', name: '김민지', grade: '1학년 1반 12번', status: 'AI 채점중', progress: 85, source: 'scan_text_2.png', dataStatus: 'OCR 추출 완료', fileType: 'PNG (3.4MB)' }
+    ]);
+
     // 서버 AI 채점 응답 타임아웃 (시뮬레이션: 5초)
     // 실제 서버 환경에서는 20분 등의 타임아웃 시간을 기반으로 완료 처리됨
     setTimeout(() => {
@@ -326,6 +338,13 @@ function Setting() {
         completed: idx % 4 !== 0,
         isWarning: false,
         isError: idx % 4 === 0
+      })));
+
+      setOcrData(prev => prev.map(o => ({
+        ...o,
+        status: 'AI 채점 완료',
+        progress: 100,
+        dataStatus: '텍스트 변환 성공'
       })));
 
       // 학생 목록 상태 업데이트: 성공하면 '채점 확인'으로 이동, 실패(id 3번 시뮬레이션)하면 '미채점' 유지
@@ -556,8 +575,22 @@ function Setting() {
                               onChange={() => toggleStudent(student.id)}
                             />
                           )}
-                          <div className={`card-badge ${student.status === '미채점' ? 'badge-red-soft' : 'badge-blue-soft'}`}>
-                            {student.status}
+                          <div style={{ display: 'flex', gap: '4px', marginBottom: '8px' }}>
+                            {student.status === '미채점' ? (
+                              student.submitType === 'ocr' ? (
+                                <div className="card-badge" style={{ background: '#EBF2FF', color: '#2A75F3' }}>
+                                  OCR 제출
+                                </div>
+                              ) : (
+                                <div className="card-badge badge-red-soft">
+                                  미채점
+                                </div>
+                              )
+                            ) : (
+                              <div className="card-badge badge-blue-soft">
+                                {student.status}
+                              </div>
+                            )}
                           </div>
                           <div className="student-name">{student.name}</div>
                           <div className="student-meta">{student.grade}</div>
@@ -792,9 +825,66 @@ function Setting() {
                       })}
                     </tbody>
                   </table>
+                  
+                  {/* 중앙 라인 및 OCR 데이터 분리선 (첨부 이미지 반영) */}
+                  <div style={{ display: 'flex', alignItems: 'center', margin: '2rem 1rem 1rem' }}>
+                    <div style={{ flex: 1, height: '1px', background: '#E5E7EB' }}></div>
+                    <span style={{ padding: '0 1.5rem', color: '#8A94A1', fontSize: '0.85rem', fontWeight: 600 }}>OCR 데이터</span>
+                    <div style={{ flex: 1, height: '1px', background: '#E5E7EB' }}></div>
+                  </div>
+
+                  {/* 다크 네이비 테마 OCR 컨테이너 영역 (첨부 이미지 반영) */}
+                  <div style={{ background: '#1B222E', borderRadius: '12px', padding: '1.5rem 1.5rem 2rem', margin: '0 1rem 1rem' }}>
+                    <h3 style={{ fontSize: '1rem', fontWeight: 700, color: '#FFFFFF', marginBottom: '1.25rem' }}>
+                      OCR 데이터 {ocrData.length}개 <span style={{ fontSize: '0.85rem', fontWeight: 400, color: '#A0ABC0', marginLeft: '4px' }}>(스캔/이미지 제출)</span>
+                    </h3>
+
+                    {ocrData.length === 0 ? (
+                      <div style={{ textAlign: 'center', color: '#FFFFFF', fontSize: '0.9rem', padding: '3rem 0' }}>
+                        OCR 대상 학생이 없습니다.
+                      </div>
+                    ) : (
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                        {ocrData.map((ocr) => (
+                          <div key={ocr.id} style={{ border: '1px solid #2A3441', borderRadius: '8px', padding: '1.25rem 1.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#11161D' }}>
+                            {/* 좌측: 학생 정보 */}
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', minWidth: '180px' }}>
+                              <span style={{ fontSize: '0.75rem', color: '#8E9AAB' }}>학생</span>
+                              <div style={{ fontWeight: 800, fontSize: '1.05rem', color: '#FFFFFF' }}>{ocr.name} <span style={{ fontWeight: 400 }}>{ocr.grade}</span></div>
+                              <div style={{ fontSize: '0.75rem', color: '#8E9AAB' }}>{ocr.status.includes('완료') ? ocr.status : '미채점 (제출완료)'}</div>
+                            </div>
+
+                            {/* 중앙: 채점 진행 */}
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', flex: 1, paddingLeft: '2rem' }}>
+                               <span style={{ fontSize: '0.75rem', color: '#8E9AAB' }}>채점 진행</span>
+                               {ocr.status === 'AI 채점중' ? (
+                                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px', width: '100%', maxWidth: '250px' }}>
+                                   <div style={{ flex: 1, height: '6px', background: '#2A3441', borderRadius: '3px', overflow: 'hidden' }}>
+                                      <div style={{ width: `${ocr.progress}%`, height: '100%', background: '#2A75F3', transition: 'width 0.5s' }}></div>
+                                   </div>
+                                   <span style={{ color: '#A0ABC0', fontSize: '0.8rem', fontWeight: 600 }}>{ocr.progress}%</span>
+                                 </div>
+                               ) : (
+                                 <div style={{ background: ocr.status === 'AI 채점 완료' ? 'rgba(42, 117, 243, 0.2)' : '#2A3441', padding: '6px 16px', borderRadius: '4px', fontSize: '0.8rem', color: ocr.status === 'AI 채점 완료' ? '#6896FF' : '#A0ABC0', fontWeight: 600, width: 'fit-content' }}>
+                                    {ocr.status === 'AI 채점 완료' ? '채점 완료' : '대기 중'}
+                                 </div>
+                               )}
+                            </div>
+
+                            {/* 우측: 타겟 버튼 */}
+                            <div>
+                              <button style={{ background: '#2A75F3', border: 'none', color: '#FFFFFF', padding: '10px 24px', borderRadius: '6px', fontSize: '0.85rem', fontWeight: 600, cursor: 'default' }}>
+                                OCR 대상
+                              </button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
                 </div>
 
-                <div className="bulk-footer-btns" style={{ display: 'flex', justifyContent: 'space-between', marginTop: '2rem' }}>
+                <div className="bulk-footer-btns" style={{ display: 'flex', justifyContent: 'space-between', marginTop: '1.5rem', padding: '1rem', borderTop: '1px solid #E5E7EB', background: '#F8F9FA' }}>
                   {bulkStatus === 'ready' ? (
                     <>
                       <button className={`btn-bulk-footer ${isUpdating ? 'updating' : ''}`} style={{ background: '#EBF2FF', color: '#2A75F3', border: 'none', padding: '0.8rem 1.5rem', borderRadius: '8px', fontWeight: 700, fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
