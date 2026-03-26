@@ -1,0 +1,1291 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Prompt Studio — 10 Screen Mockups</title>
+<link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+/* ─── Global ─── */
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Pretendard',-apple-system,sans-serif;background:#e5e7eb;color:#1E2225;line-height:1.5;-webkit-font-smoothing:antialiased;padding:40px 20px;}
+:root{--primary:#2A75F3;--primary-light:#EBF2FF;--primary-dark:#1A59C8;--success:#10B981;--bg-main:#F4F7FB;--bg-card:#fff;--text-main:#1E2225;--text-muted:#4E5968;--text-light:#8A94A1;--border:#E8EBED;--shadow:0 4px 6px -1px rgba(0,0,0,.1),0 2px 4px -1px rgba(0,0,0,.06);}
+
+/* ─── Screen Frame ─── */
+.screen-wrapper{max-width:1200px;margin:0 auto 60px;background:#fff;border-radius:24px;box-shadow:var(--shadow);overflow:hidden;}
+.screen-label{background:#1E2225;color:#fff;padding:14px 28px;font-size:1rem;font-weight:700;display:flex;align-items:center;gap:12px;}
+.screen-label .badge{background:var(--primary);padding:3px 10px;border-radius:6px;font-size:.78rem;font-weight:700;}
+.screen-label .desc{font-weight:400;color:#94a3b8;font-size:.85rem;margin-left:auto;}
+
+/* ─── Page Header ─── */
+.sg-header{padding:20px 28px 16px;border-bottom:1px solid var(--border);}
+.sg-title{font-size:1.25rem;font-weight:800;}
+.sg-subtitle{font-size:.82rem;color:var(--text-light);margin-top:2px;}
+
+/* ─── Container ─── */
+.sg-container{display:flex;min-height:680px;}
+
+/* ─── Left Pipeline ─── */
+.sg-pipeline{flex:1;padding:20px 24px;overflow-y:auto;display:flex;flex-direction:column;gap:16px;border-right:1px solid var(--border);}
+
+/* ─── Step Card ─── */
+.sg-step-card{background:#fff;border:1px solid var(--border);border-radius:12px;overflow:hidden;}
+.sg-card-content{padding:16px 18px;}
+.sg-card-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px;}
+.sg-card-label{font-size:.9rem;font-weight:700;color:var(--text-main);}
+.sg-card-badge-req{font-size:.68rem;font-weight:700;color:var(--primary);background:var(--primary-light);padding:2px 8px;border-radius:4px;}
+
+/* ─── Assignment List ─── */
+.assign-list{max-height:160px;overflow-y:auto;border:1px solid #e2e8f0;border-radius:8px;background:#fff;}
+.assign-item{padding:8px 12px;font-size:.875rem;border-bottom:1px solid #f1f5f9;cursor:pointer;color:#334155;}
+.assign-item:last-child{border-bottom:none;}
+.assign-item:hover{background:#f8fafc;}
+.assign-item.active{background:var(--primary-light);color:var(--primary);font-weight:600;}
+.assign-item .tag{font-size:.75rem;color:#94a3b8;margin-right:6px;}
+
+/* ─── Loaded Data ─── */
+.sg-loaded-data{margin-top:12px;padding:12px;background:#f8fafc;border-radius:8px;border:1px solid #e2e8f0;font-size:.82rem;color:#475569;display:flex;flex-direction:column;gap:6px;}
+.sg-data-row strong{color:#1e293b;}
+
+/* ─── Upload Zone ─── */
+.sg-upload-zone{border:2px dashed #cbd5e1;border-radius:12px;padding:28px;text-align:center;cursor:pointer;transition:all .2s;}
+.sg-upload-zone:hover{border-color:var(--primary);background:#fafbff;}
+.sg-upload-icon{font-size:2rem;margin-bottom:8px;}
+.sg-upload-text{font-size:.85rem;color:#475569;font-weight:500;}
+.sg-upload-sub{font-size:.78rem;color:#94a3b8;margin-top:6px;}
+
+/* ─── Upload Preview ─── */
+.sg-preview-container{position:relative;display:inline-block;}
+.sg-preview-img{max-width:100%;border-radius:8px;border:1px solid #e2e8f0;}
+.sg-btn-delete-img{position:absolute;top:6px;right:6px;background:rgba(0,0,0,.5);color:#fff;border:none;border-radius:50%;width:24px;height:24px;font-size:.8rem;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+
+/* ─── Prompt Section ─── */
+.sg-prompt-group{margin-top:12px;}
+.sg-prompt-label{font-size:.8rem;font-weight:600;color:#64748b;margin-bottom:6px;display:block;}
+.sg-textarea-small{width:100%;min-height:80px;border:1px solid #e2e8f0;border-radius:8px;padding:10px 12px;font-size:.82rem;font-family:inherit;resize:vertical;color:#334155;background:#fff;}
+.sg-textarea-mid{width:100%;min-height:120px;border:1px solid #e2e8f0;border-radius:8px;padding:10px 12px;font-size:.82rem;font-family:inherit;resize:vertical;color:#334155;background:#fff;}
+.sg-textarea-small::placeholder,.sg-textarea-mid::placeholder{color:#94a3b8;}
+
+/* ─── Version Row ─── */
+.version-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+.sg-select-full{padding:6px 10px;border:1px solid #e2e8f0;border-radius:6px;font-size:.82rem;font-weight:700;background:#fff;color:#334155;min-width:200px;}
+.btn-sm{padding:4px 12px;font-size:.78rem;font-weight:600;border-radius:6px;border:1px solid;cursor:pointer;white-space:nowrap;}
+.btn-live{background:#EBF2FF;border-color:var(--primary);color:var(--primary);}
+.btn-delete{background:#fef2f2;border-color:#ef4444;color:#ef4444;}
+.btn-new{background:#f8fafc;border-color:#cbd5e1;color:#475569;}
+.btn-save{background:#EBF2FF;border-color:var(--primary);color:var(--primary);font-weight:700;}
+.live-badge{font-size:.8rem;color:var(--success);font-weight:700;white-space:nowrap;}
+
+/* ─── Version Description ─── */
+.version-desc{display:flex;align-items:center;gap:8px;padding:8px 10px;background:#f8fafc;border-radius:8px;border:1px solid #e2e8f0;margin-top:8px;}
+.version-desc-icon{font-size:.78rem;color:#64748b;white-space:nowrap;font-weight:600;}
+.version-desc-input{flex:1;border:none;background:transparent;font-size:.82rem;color:#94a3b8;outline:none;}
+.version-desc-input.editable{color:#334155;cursor:text;}
+
+/* ─── Eval Toggle ─── */
+.eval-toggle{display:flex;border:1px solid #e2e8f0;border-radius:6px;overflow:hidden;}
+.eval-toggle button{padding:3px 10px;font-size:.75rem;border:none;cursor:pointer;font-weight:400;background:#f8fafc;color:#64748b;}
+.eval-toggle button.active{font-weight:700;background:#334155;color:#fff;}
+
+/* ─── Right Sidebar ─── */
+.sg-sidebar{width:300px;padding:20px;display:flex;flex-direction:column;gap:16px;flex-shrink:0;background:#fafbff;}
+.sg-side-card{background:#fff;border:1px solid var(--border);border-radius:12px;padding:16px;}
+.sg-side-title{font-size:.9rem;font-weight:700;margin-bottom:12px;}
+.sg-model-group-title{font-size:.78rem;font-weight:600;color:#64748b;margin-bottom:6px;margin-top:8px;}
+.sg-model-list{display:flex;flex-wrap:wrap;gap:6px;}
+.sg-model-pill{padding:5px 12px;font-size:.78rem;font-weight:500;border-radius:20px;border:1px solid #e2e8f0;background:#fff;color:#475569;cursor:pointer;transition:all .15s;}
+.sg-model-pill:hover{border-color:var(--primary);color:var(--primary);}
+.sg-model-pill.active{background:var(--primary);color:#fff;border-color:var(--primary);}
+
+/* ─── Param ─── */
+.sg-param-group{margin-top:10px;}
+.sg-param-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;}
+.sg-param-label{font-size:.78rem;font-weight:600;color:#64748b;}
+.sg-param-value{font-size:.78rem;font-weight:700;color:var(--text-main);}
+.sg-range{width:100%;accent-color:var(--primary);margin-top:2px;}
+.sg-thinking-row{display:flex;align-items:center;gap:8px;margin-top:6px;}
+.sg-toggle{position:relative;width:36px;height:20px;background:#cbd5e1;border-radius:10px;cursor:pointer;transition:all .2s;}
+.sg-toggle.on{background:var(--primary);}
+.sg-toggle::after{content:'';position:absolute;top:2px;left:2px;width:16px;height:16px;background:#fff;border-radius:50%;transition:all .2s;}
+.sg-toggle.on::after{left:18px;}
+.thinking-btns{display:flex;gap:4px;margin-top:6px;}
+.thinking-btn{padding:3px 8px;font-size:.72rem;border:1px solid #e2e8f0;border-radius:4px;background:#fff;color:#64748b;cursor:pointer;}
+.thinking-btn.active{background:#334155;color:#fff;border-color:#334155;}
+
+/* ─── AI Run Button ─── */
+.sg-run-btn{width:100%;padding:12px;border-radius:10px;font-size:.9rem;font-weight:700;border:none;cursor:pointer;transition:all .2s;display:flex;align-items:center;justify-content:center;gap:8px;}
+.sg-run-btn.disabled{background:#e2e8f0;color:#94a3b8;cursor:not-allowed;}
+.sg-run-btn.enabled{background:var(--primary);color:#fff;}
+.sg-run-btn.enabled:hover{background:var(--primary-dark);}
+.sg-run-btn.loading{background:#94a3b8;color:#fff;cursor:not-allowed;}
+.sg-run-warning{font-size:.72rem;color:#f59e0b;margin-top:6px;text-align:center;}
+
+/* ─── Spinner ─── */
+.spinner{width:16px;height:16px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin 1s linear infinite;display:inline-block;}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ─── Result Card ─── */
+.sg-result-card{border:2px solid var(--success);border-radius:12px;padding:16px 18px;}
+.sg-result-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px;}
+.sg-res-box{background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:12px;}
+.sg-res-box label{font-size:.78rem;font-weight:600;color:#64748b;display:block;margin-bottom:6px;}
+.sg-res-text{font-size:.82rem;color:#334155;line-height:1.6;}
+.sg-res-json{font-size:.78rem;color:#334155;background:#f1f5f9;padding:10px;border-radius:6px;white-space:pre-wrap;font-family:'Consolas','Courier New',monospace;margin:0;}
+.sg-btn-archive{padding:6px 14px;font-size:.78rem;font-weight:600;border-radius:6px;border:1px solid var(--primary);background:var(--primary-light);color:var(--primary);cursor:pointer;}
+.sg-btn-archive.saved{background:#d1fae5;border-color:var(--success);color:var(--success);cursor:not-allowed;}
+.sg-ai-eval-box{margin-top:16px;padding:16px;background:#f8fafc;border-radius:8px;border:1px solid #e2e8f0;}
+.sg-eval-title{font-size:.95rem;font-weight:700;color:#1e293b;display:flex;align-items:center;gap:6px;margin-bottom:12px;}
+.sg-eval-title .sub{font-size:.8rem;color:#64748b;font-weight:400;}
+.sg-eval-grid{display:flex;gap:16px;flex-wrap:wrap;}
+.sg-eval-item{flex:1;min-width:200px;}
+.sg-metrics-footer{display:flex;gap:16px;flex-wrap:wrap;margin-top:16px;padding-top:12px;border-top:1px solid #e2e8f0;font-size:.78rem;color:#64748b;}
+.sg-metrics-footer strong{color:#475569;}
+.sg-cost-krw{color:#94a3b8;margin-left:2px;}
+.sg-btn-refresh{background:none;border:none;cursor:pointer;font-size:.85rem;margin-left:4px;color:#64748b;}
+
+/* ─── No Result Placeholder ─── */
+.sg-no-result{padding:20px;background:#f8fafc;border:1px dashed #cbd5e1;border-radius:10px;text-align:center;color:#94a3b8;font-size:.875rem;}
+.sg-no-result .icon{font-size:1.5rem;margin-bottom:8px;}
+.sg-no-result .hint{margin-top:4px;font-size:.8rem;}
+.sg-no-result .hint strong{color:#475569;}
+
+/* ─── Feedback textarea ─── */
+.sg-feedback-textarea{width:100%;min-height:50px;border:1px solid #e2e8f0;border-radius:8px;padding:8px 12px;font-size:.82rem;font-family:inherit;resize:vertical;color:#334155;}
+.sg-feedback-textarea::placeholder{color:#94a3b8;}
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════════════════════
+     SCREEN 1 — 초기 화면 (문항 미선택)
+     ═══════════════════════════════════════════════════════════ -->
+<div class="screen-wrapper">
+  <div class="screen-label">
+    <span class="badge">S1</span> SCREEN 1 — 초기 화면 (문항 미선택)
+    <span class="desc">selectedAssignId = '' / 최초 진입 상태</span>
+  </div>
+  <div class="sg-header">
+    <div class="sg-title">Prompt Studio</div>
+    <div class="sg-subtitle">문항 선택부터 AI 정밀 분석까지 원스톱 채점 자동화를 경험하세요.</div>
+  </div>
+  <div class="sg-container">
+    <div class="sg-pipeline">
+      <!-- Step 1 -->
+      <div class="sg-step-card">
+        <div class="sg-card-content">
+          <div class="sg-card-header">
+            <span class="sg-card-label">등록 문항 선택</span>
+            <span class="sg-card-badge-req">필수</span>
+          </div>
+          <div class="assign-list">
+            <div class="assign-item"><span class="tag">[중등-국어]</span>문학 지문 분석</div>
+            <div class="assign-item"><span class="tag">[중등-수학]</span>2차 방정식 풀이</div>
+            <div class="assign-item"><span class="tag">[초등-과학]</span>광합성 작용 원리</div>
+            <div class="assign-item"><span class="tag">[고등-국어]</span>소설 인물 분석</div>
+            <div class="assign-item"><span class="tag">[고등-수학]</span>함수의 극값</div>
+          </div>
+        </div>
+      </div>
+      <!-- Step 2 -->
+      <div class="sg-step-card">
+        <div class="sg-card-content">
+          <div class="sg-card-header">
+            <span class="sg-card-label">학생 답안 업로드 (이미지 또는 JSON)</span>
+            <span class="sg-card-badge-req">필수 1건</span>
+          </div>
+          <div class="sg-upload-zone">
+            <div class="sg-upload-icon">📸</div>
+            <div class="sg-upload-text">학생 답안 이미지 또는 JSON 필기 데이터를 업로드하세요</div>
+            <div class="sg-upload-sub">1. 일반 사진(JPG, PNG 등)<br>2. NeoStudio 필기 데이터(_.json)</div>
+          </div>
+        </div>
+      </div>
+      <!-- Step 3 -->
+      <div class="sg-step-card">
+        <div class="sg-card-content">
+          <div class="sg-card-header" style="flex-direction:column;align-items:flex-start;gap:8px;">
+            <div style="display:flex;width:100%;justify-content:space-between;align-items:center;">
+              <span class="sg-card-label">시스템 프롬프트 (버전 관리)</span>
+              <button class="btn-sm btn-new">+ 새 버전 추가</button>
+            </div>
+            <div class="version-desc">
+              <span class="version-desc-icon">📋 버전 설명</span>
+              <input class="version-desc-input" value="저장된 내용이 없습니다." readonly>
+            </div>
+          </div>
+          <div class="sg-prompt-group">
+            <label class="sg-prompt-label">OCR 프롬프트</label>
+            <textarea class="sg-textarea-small" readonly placeholder="문항을 선택하면 DB에 적용된 프롬프트 내용이 나옵니다."></textarea>
+          </div>
+          <div class="sg-prompt-group">
+            <label class="sg-prompt-label">채점 프롬프트 (System Prompt)</label>
+            <textarea class="sg-textarea-mid" readonly placeholder="문항을 선택하면 DB에 적용된 프롬프트 내용이 나옵니다."></textarea>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- Right Sidebar -->
+    <aside class="sg-sidebar">
+      <div class="sg-side-card">
+        <div class="sg-side-title">🤖 AI 모델 선택</div>
+        <div class="sg-model-group-title">GPT 모델</div>
+        <div class="sg-model-list">
+          <button class="sg-model-pill">GPT-4o mini</button>
+          <button class="sg-model-pill">GPT-5.3 Instant</button>
+          <button class="sg-model-pill">GPT-5.4 Thinking</button>
+          <button class="sg-model-pill">GPT-5.4 Pro</button>
+        </div>
+        <div class="sg-model-group-title">Gemini 모델</div>
+        <div class="sg-model-list">
+          <button class="sg-model-pill active">Gemini 3.1 Pro</button>
+          <button class="sg-model-pill">Gemini 3.1 Flash-Lite</button>
+        </div>
+      </div>
+      <div class="sg-side-card">
+        <div class="sg-side-title">⚙️ 파라미터 설정</div>
+        <div class="sg-param-group">
+          <div class="sg-param-row"><span class="sg-param-label">temperature</span><span class="sg-param-value">0.1</span></div>
+          <input type="range" class="sg-range" min="0" max="1" step="0.1" value="0.1">
+          <div class="sg-param-row" style="margin-top:10px;"><span class="sg-param-label">top_p</span><span class="sg-param-value">1.0</span></div>
+          <input type="range" class="sg-range" min="0" max="1" step="0.1" value="1.0">
+          <div class="sg-param-row" style="margin-top:10px;"><span class="sg-param-label">max_tokens</span><span class="sg-param-value">2048</span></div>
+          <input type="range" class="sg-range" min="100" max="8192" step="100" value="2048">
+          <div style="margin-top:12px;">
+            <div class="sg-param-label">thinking_config (Gemini)</div>
+            <div class="thinking-btns">
+              <button class="thinking-btn">Minimal</button>
+              <button class="thinking-btn">Low</button>
+              <button class="thinking-btn active">Medium</button>
+              <button class="thinking-btn">High</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <button class="sg-run-btn disabled">▶ AI 실행</button>
+      <div class="sg-run-warning">⚠️ 문항 선택과 답안 업로드가 완료되어야 실행할 수 있습니다.</div>
+    </aside>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════════════
+     SCREEN 2 — 문항 선택 후 (프롬프트 있는 경우)
+     ═══════════════════════════════════════════════════════════ -->
+<div class="screen-wrapper">
+  <div class="screen-label">
+    <span class="badge">S2</span> SCREEN 2 — 문항 선택 후 (프롬프트 있는 경우)
+    <span class="desc">assign-002 선택 / Live 버전 / isDraftMode=false</span>
+  </div>
+  <div class="sg-header">
+    <div class="sg-title">Prompt Studio</div>
+    <div class="sg-subtitle">문항 선택부터 AI 정밀 분석까지 원스톱 채점 자동화를 경험하세요.</div>
+  </div>
+  <div class="sg-container">
+    <div class="sg-pipeline">
+      <!-- Step 1 -->
+      <div class="sg-step-card">
+        <div class="sg-card-content">
+          <div class="sg-card-header">
+            <span class="sg-card-label">등록 문항 선택</span>
+            <span class="sg-card-badge-req">필수</span>
+          </div>
+          <div class="assign-list">
+            <div class="assign-item"><span class="tag">[중등-국어]</span>문학 지문 분석</div>
+            <div class="assign-item active"><span class="tag">[중등-수학]</span>2차 방정식 풀이</div>
+            <div class="assign-item"><span class="tag">[초등-과학]</span>광합성 작용 원리</div>
+            <div class="assign-item"><span class="tag">[고등-국어]</span>소설 인물 분석</div>
+            <div class="assign-item"><span class="tag">[고등-수학]</span>함수의 극값</div>
+          </div>
+          <div class="sg-loaded-data">
+            <div class="sg-data-row"><strong>[문제]</strong> x² - 5x + 6 = 0의 해를 구하고 풀이 과정을 쓰시오.</div>
+            <div class="sg-data-row"><strong>[모범답안]</strong> (x-2)(x-3) = 0 따라서 x = 2 또는 x = 3.</div>
+            <div class="sg-data-row"><strong>[채점기준]</strong> - 인수분해 과정의 정확성 / - 최종 해 도출 여부</div>
+          </div>
+        </div>
+      </div>
+      <!-- Step 2 -->
+      <div class="sg-step-card">
+        <div class="sg-card-content">
+          <div class="sg-card-header">
+            <span class="sg-card-label">학생 답안 업로드 (이미지 또는 JSON)</span>
+            <span class="sg-card-badge-req">필수 1건</span>
+          </div>
+          <div class="sg-upload-zone">
+            <div class="sg-upload-icon">📸</div>
+            <div class="sg-upload-text">학생 답안 이미지 또는 JSON 필기 데이터를 업로드하세요</div>
+            <div class="sg-upload-sub">1. 일반 사진(JPG, PNG 등)<br>2. NeoStudio 필기 데이터(_.json)</div>
+          </div>
+        </div>
+      </div>
+      <!-- Step 3: Live version -->
+      <div class="sg-step-card">
+        <div class="sg-card-content">
+          <div class="sg-card-header" style="flex-direction:column;align-items:flex-start;gap:8px;">
+            <div style="display:flex;width:100%;justify-content:space-between;align-items:center;">
+              <div style="display:flex;align-items:center;gap:8px;">
+                <span class="sg-card-label">시스템 프롬프트 (버전 관리)</span>
+                <div class="eval-toggle">
+                  <button class="active">정성평가</button>
+                  <button>정량평가</button>
+                </div>
+              </div>
+              <div style="display:flex;gap:8px;align-items:center;">
+                <span class="live-badge">🚀 현재 Live 모델</span>
+                <select class="sg-select-full" style="width:auto;min-width:220px;">
+                  <option>v1 | 2026-03-25 17:20:55 🔴 Live</option>
+                </select>
+                <button class="btn-sm btn-new">+ 새 버전 추가</button>
+              </div>
+            </div>
+            <div class="version-desc">
+              <span class="version-desc-icon">📋 버전 설명</span>
+              <input class="version-desc-input" value="저장된 내용이 없습니다." readonly>
+            </div>
+          </div>
+          <div class="sg-prompt-group">
+            <label class="sg-prompt-label">OCR 프롬프트</label>
+            <textarea class="sg-textarea-small">Please transcribe the handwritten Korean text from the provided image precisely.
+Keep the original structure and include any mathematical notations in LaTeX format if possible.</textarea>
+          </div>
+          <div class="sg-prompt-group">
+            <label class="sg-prompt-label">채점 프롬프트 (System Prompt)</label>
+            <textarea class="sg-textarea-mid">## [Role]
+You are an expert mathematics educator and AI grading engine.
+
+## [Objective]
+Analyze the student's answer based on the provided Model Answer and Grading Criteria.
+Provide a grade and constructive feedback.</textarea>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- Right Sidebar -->
+    <aside class="sg-sidebar">
+      <div class="sg-side-card">
+        <div class="sg-side-title">🤖 AI 모델 선택</div>
+        <div class="sg-model-group-title">GPT 모델</div>
+        <div class="sg-model-list">
+          <button class="sg-model-pill">GPT-4o mini</button>
+          <button class="sg-model-pill">GPT-5.3 Instant</button>
+          <button class="sg-model-pill">GPT-5.4 Thinking</button>
+          <button class="sg-model-pill">GPT-5.4 Pro</button>
+        </div>
+        <div class="sg-model-group-title">Gemini 모델</div>
+        <div class="sg-model-list">
+          <button class="sg-model-pill active">Gemini 3.1 Pro</button>
+          <button class="sg-model-pill">Gemini 3.1 Flash-Lite</button>
+        </div>
+      </div>
+      <div class="sg-side-card">
+        <div class="sg-side-title">⚙️ 파라미터 설정</div>
+        <div class="sg-param-group">
+          <div class="sg-param-row"><span class="sg-param-label">temperature</span><span class="sg-param-value">0.1</span></div>
+          <input type="range" class="sg-range" min="0" max="1" step="0.1" value="0.1">
+          <div class="sg-param-row" style="margin-top:10px;"><span class="sg-param-label">top_p</span><span class="sg-param-value">1.0</span></div>
+          <input type="range" class="sg-range" min="0" max="1" step="0.1" value="1.0">
+          <div class="sg-param-row" style="margin-top:10px;"><span class="sg-param-label">max_tokens</span><span class="sg-param-value">2048</span></div>
+          <input type="range" class="sg-range" min="100" max="8192" step="100" value="2048">
+          <div style="margin-top:12px;">
+            <div class="sg-param-label">thinking_config (Gemini)</div>
+            <div class="thinking-btns">
+              <button class="thinking-btn">Minimal</button>
+              <button class="thinking-btn">Low</button>
+              <button class="thinking-btn active">Medium</button>
+              <button class="thinking-btn">High</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <button class="sg-run-btn disabled">▶ AI 실행</button>
+      <div class="sg-run-warning">⚠️ 답안을 업로드해야 실행할 수 있습니다.</div>
+    </aside>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════════════
+     SCREEN 3 — 문항 선택 후 (프롬프트 없는 경우)
+     ═══════════════════════════════════════════════════════════ -->
+<div class="screen-wrapper">
+  <div class="screen-label">
+    <span class="badge">S3</span> SCREEN 3 — 문항 선택 후 (프롬프트 없는 경우)
+    <span class="desc">국어 문항 + 정량평가 채널 / 미등록 isInitial=true</span>
+  </div>
+  <div class="sg-header">
+    <div class="sg-title">Prompt Studio</div>
+    <div class="sg-subtitle">문항 선택부터 AI 정밀 분석까지 원스톱 채점 자동화를 경험하세요.</div>
+  </div>
+  <div class="sg-container">
+    <div class="sg-pipeline">
+      <!-- Step 1 (collapsed) -->
+      <div class="sg-step-card">
+        <div class="sg-card-content">
+          <div class="sg-card-header">
+            <span class="sg-card-label">등록 문항 선택</span>
+            <span class="sg-card-badge-req">필수</span>
+          </div>
+          <div class="assign-list">
+            <div class="assign-item active"><span class="tag">[중등-국어]</span>문학 지문 분석</div>
+            <div class="assign-item"><span class="tag">[중등-수학]</span>2차 방정식 풀이</div>
+            <div class="assign-item"><span class="tag">[초등-과학]</span>광합성 작용 원리</div>
+          </div>
+          <div class="sg-loaded-data">
+            <div class="sg-data-row"><strong>[문제]</strong> 다음 시의 주제와 작가의 의도를 서술하시오.</div>
+            <div class="sg-data-row"><strong>[모범답안]</strong> 작품의 주제는 인간의 고독과 극복 의지이다.</div>
+            <div class="sg-data-row"><strong>[채점기준]</strong> - 핵심 키워드 포함 여부 / - 문장의 논리적 완결성</div>
+          </div>
+        </div>
+      </div>
+      <!-- Step 2 -->
+      <div class="sg-step-card">
+        <div class="sg-card-content">
+          <div class="sg-card-header">
+            <span class="sg-card-label">학생 답안 업로드 (이미지 또는 JSON)</span>
+            <span class="sg-card-badge-req">필수 1건</span>
+          </div>
+          <div class="sg-upload-zone">
+            <div class="sg-upload-icon">📸</div>
+            <div class="sg-upload-text">학생 답안 이미지 또는 JSON 필기 데이터를 업로드하세요</div>
+            <div class="sg-upload-sub">1. 일반 사진(JPG, PNG 등)<br>2. NeoStudio 필기 데이터(_.json)</div>
+          </div>
+        </div>
+      </div>
+      <!-- Step 3: 미등록 채널 -->
+      <div class="sg-step-card">
+        <div class="sg-card-content">
+          <div class="sg-card-header" style="flex-direction:column;align-items:flex-start;gap:8px;">
+            <div style="display:flex;width:100%;justify-content:space-between;align-items:center;">
+              <div style="display:flex;align-items:center;gap:8px;">
+                <span class="sg-card-label">시스템 프롬프트 (버전 관리)</span>
+                <div class="eval-toggle">
+                  <button>정성평가</button>
+                  <button class="active">정량평가</button>
+                </div>
+              </div>
+              <div style="display:flex;gap:8px;align-items:center;">
+                <select class="sg-select-full" style="width:auto;min-width:160px;color:#94a3b8;">
+                  <option>등록 버전 없음</option>
+                </select>
+                <button class="btn-sm btn-new">+ 새 버전 추가</button>
+              </div>
+            </div>
+            <div class="version-desc">
+              <span class="version-desc-icon">📋 버전 설명</span>
+              <input class="version-desc-input" value="저장된 내용이 없습니다." readonly>
+            </div>
+          </div>
+          <div class="sg-prompt-group">
+            <label class="sg-prompt-label">OCR 프롬프트</label>
+            <textarea class="sg-textarea-small" readonly placeholder="등록된 OCR 프롬프트가 없습니다."></textarea>
+          </div>
+          <div class="sg-prompt-group">
+            <label class="sg-prompt-label">채점 프롬프트 (System Prompt)</label>
+            <textarea class="sg-textarea-mid" readonly placeholder="등록된 채점 프롬프트가 없습니다."></textarea>
+          </div>
+        </div>
+      </div>
+    </div>
+    <aside class="sg-sidebar">
+      <div class="sg-side-card">
+        <div class="sg-side-title">🤖 AI 모델 선택</div>
+        <div class="sg-model-group-title">GPT 모델</div>
+        <div class="sg-model-list">
+          <button class="sg-model-pill">GPT-4o mini</button>
+          <button class="sg-model-pill">GPT-5.3 Instant</button>
+          <button class="sg-model-pill">GPT-5.4 Thinking</button>
+          <button class="sg-model-pill">GPT-5.4 Pro</button>
+        </div>
+        <div class="sg-model-group-title">Gemini 모델</div>
+        <div class="sg-model-list">
+          <button class="sg-model-pill active">Gemini 3.1 Pro</button>
+          <button class="sg-model-pill">Gemini 3.1 Flash-Lite</button>
+        </div>
+      </div>
+      <div class="sg-side-card">
+        <div class="sg-side-title">⚙️ 파라미터 설정</div>
+        <div class="sg-param-group">
+          <div class="sg-param-row"><span class="sg-param-label">temperature</span><span class="sg-param-value">0.1</span></div>
+          <input type="range" class="sg-range" min="0" max="1" step="0.1" value="0.1">
+          <div class="sg-param-row" style="margin-top:10px;"><span class="sg-param-label">top_p</span><span class="sg-param-value">1.0</span></div>
+          <input type="range" class="sg-range" min="0" max="1" step="0.1" value="1.0">
+          <div class="sg-param-row" style="margin-top:10px;"><span class="sg-param-label">max_tokens</span><span class="sg-param-value">2048</span></div>
+          <input type="range" class="sg-range" min="100" max="8192" step="100" value="2048">
+        </div>
+      </div>
+      <button class="sg-run-btn disabled">▶ AI 실행</button>
+    </aside>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════════════
+     SCREEN 4 — 버전 복수 존재 / 비Live 버전 선택
+     ═══════════════════════════════════════════════════════════ -->
+<div class="screen-wrapper">
+  <div class="screen-label">
+    <span class="badge">S4</span> SCREEN 4 — 버전 복수 존재 / 비Live 버전 선택
+    <span class="desc">v1(Live), v2, v3 존재 / v2 선택됨 / isDraftMode=false</span>
+  </div>
+  <div class="sg-header">
+    <div class="sg-title">Prompt Studio</div>
+    <div class="sg-subtitle">문항 선택부터 AI 정밀 분석까지 원스톱 채점 자동화를 경험하세요.</div>
+  </div>
+  <div class="sg-container">
+    <div class="sg-pipeline">
+      <!-- Step 1 (축소) -->
+      <div class="sg-step-card">
+        <div class="sg-card-content">
+          <div class="sg-card-header">
+            <span class="sg-card-label">등록 문항 선택</span>
+            <span class="sg-card-badge-req">필수</span>
+          </div>
+          <div class="assign-list" style="max-height:60px;">
+            <div class="assign-item active"><span class="tag">[중등-수학]</span>2차 방정식 풀이</div>
+          </div>
+          <div class="sg-loaded-data">
+            <div class="sg-data-row"><strong>[문제]</strong> x² - 5x + 6 = 0의 해를 구하고 풀이 과정을 쓰시오.</div>
+          </div>
+        </div>
+      </div>
+      <!-- Step 3: 비Live 버전 -->
+      <div class="sg-step-card">
+        <div class="sg-card-content">
+          <div class="sg-card-header" style="flex-direction:column;align-items:flex-start;gap:8px;">
+            <div style="display:flex;width:100%;justify-content:space-between;align-items:center;">
+              <div style="display:flex;align-items:center;gap:8px;">
+                <span class="sg-card-label">시스템 프롬프트 (버전 관리)</span>
+                <div class="eval-toggle">
+                  <button class="active">정성평가</button>
+                  <button>정량평가</button>
+                </div>
+              </div>
+              <div style="display:flex;gap:8px;align-items:center;">
+                <button class="btn-sm btn-live">✔️ DB(Live) 적용</button>
+                <button class="btn-sm btn-delete">🗑️ 삭제</button>
+                <select class="sg-select-full" style="width:auto;min-width:220px;">
+                  <option>v1 | 2026-03-25 17:20:55 🔴 Live</option>
+                  <option selected>v2 | 2026-03-25 18:05:22</option>
+                  <option>v3 | 2026-03-25 19:11:44</option>
+                </select>
+                <button class="btn-sm btn-new">+ 새 버전 추가</button>
+              </div>
+            </div>
+            <div class="version-desc">
+              <span class="version-desc-icon">📋 버전 설명</span>
+              <input class="version-desc-input" value="OCR 인식률 개선" readonly>
+            </div>
+          </div>
+          <div class="sg-prompt-group">
+            <label class="sg-prompt-label">OCR 프롬프트</label>
+            <textarea class="sg-textarea-small">Please transcribe the handwritten Korean text precisely.
+Include line breaks and mathematical notations in LaTeX format.
+[v2 개선] 특수문자 인식 정확도 향상을 위해 추가 지시 포함.</textarea>
+          </div>
+          <div class="sg-prompt-group">
+            <label class="sg-prompt-label">채점 프롬프트 (System Prompt)</label>
+            <textarea class="sg-textarea-mid">## [Role]
+You are an expert mathematics educator and AI grading engine.
+
+## [Objective] (v2 — OCR 인식률 개선 버전)
+Analyze the student's answer more carefully...</textarea>
+          </div>
+        </div>
+      </div>
+    </div>
+    <aside class="sg-sidebar">
+      <div class="sg-side-card">
+        <div class="sg-side-title">🤖 AI 모델 선택</div>
+        <div class="sg-model-group-title">GPT 모델</div>
+        <div class="sg-model-list">
+          <button class="sg-model-pill">GPT-4o mini</button>
+          <button class="sg-model-pill">GPT-5.3 Instant</button>
+          <button class="sg-model-pill">GPT-5.4 Thinking</button>
+          <button class="sg-model-pill">GPT-5.4 Pro</button>
+        </div>
+        <div class="sg-model-group-title">Gemini 모델</div>
+        <div class="sg-model-list">
+          <button class="sg-model-pill active">Gemini 3.1 Pro</button>
+          <button class="sg-model-pill">Gemini 3.1 Flash-Lite</button>
+        </div>
+      </div>
+      <div class="sg-side-card">
+        <div class="sg-side-title">⚙️ 파라미터 설정</div>
+        <div class="sg-param-group">
+          <div class="sg-param-row"><span class="sg-param-label">temperature</span><span class="sg-param-value">0.1</span></div>
+          <input type="range" class="sg-range" min="0" max="1" step="0.1" value="0.1">
+          <div class="sg-param-row" style="margin-top:10px;"><span class="sg-param-label">top_p</span><span class="sg-param-value">1.0</span></div>
+          <input type="range" class="sg-range" min="0" max="1" step="0.1" value="1.0">
+          <div class="sg-param-row" style="margin-top:10px;"><span class="sg-param-label">max_tokens</span><span class="sg-param-value">2048</span></div>
+          <input type="range" class="sg-range" min="100" max="8192" step="100" value="2048">
+        </div>
+      </div>
+      <button class="sg-run-btn disabled">▶ AI 실행</button>
+    </aside>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════════════
+     SCREEN 5 — 새 버전 추가 (Draft 상태)
+     ═══════════════════════════════════════════════════════════ -->
+<div class="screen-wrapper">
+  <div class="screen-label">
+    <span class="badge">S5</span> SCREEN 5 — 새 버전 추가 (Draft 상태)
+    <span class="desc">isDraftMode=true / v4 Draft 추가됨</span>
+  </div>
+  <div class="sg-header">
+    <div class="sg-title">Prompt Studio</div>
+    <div class="sg-subtitle">문항 선택부터 AI 정밀 분석까지 원스톱 채점 자동화를 경험하세요.</div>
+  </div>
+  <div class="sg-container">
+    <div class="sg-pipeline">
+      <!-- Step 1 (축소) -->
+      <div class="sg-step-card">
+        <div class="sg-card-content">
+          <div class="sg-card-header">
+            <span class="sg-card-label">등록 문항 선택</span>
+            <span class="sg-card-badge-req">필수</span>
+          </div>
+          <div class="assign-list" style="max-height:60px;">
+            <div class="assign-item active"><span class="tag">[중등-수학]</span>2차 방정식 풀이</div>
+          </div>
+        </div>
+      </div>
+      <!-- Step 3: Draft -->
+      <div class="sg-step-card" style="border-color:#f59e0b;">
+        <div class="sg-card-content">
+          <div class="sg-card-header" style="flex-direction:column;align-items:flex-start;gap:8px;">
+            <div style="display:flex;width:100%;justify-content:space-between;align-items:center;">
+              <div style="display:flex;align-items:center;gap:8px;">
+                <span class="sg-card-label">시스템 프롬프트 (버전 관리)</span>
+                <div class="eval-toggle">
+                  <button class="active">정성평가</button>
+                  <button>정량평가</button>
+                </div>
+              </div>
+              <div style="display:flex;gap:8px;align-items:center;">
+                <select class="sg-select-full" style="width:auto;min-width:240px;color:#f59e0b;border-color:#f59e0b;">
+                  <option>v1 | 2026-03-25 17:20:55 🔴 Live</option>
+                  <option>v2 | 2026-03-25 18:05:22</option>
+                  <option>v3 | 2026-03-25 19:11:44</option>
+                  <option selected>✏️ v4 | 시간 미정 (미저장)</option>
+                </select>
+                <button class="btn-sm btn-save">💾 새 버전 저장</button>
+              </div>
+            </div>
+            <div class="version-desc" style="border-color:#f59e0b;">
+              <span class="version-desc-icon">📋 버전 설명</span>
+              <input class="version-desc-input editable" placeholder="이 버전의 변경 내용을 간단히 메모하세요 (50자 이내)" value="">
+            </div>
+          </div>
+          <div class="sg-prompt-group">
+            <label class="sg-prompt-label">OCR 프롬프트</label>
+            <textarea class="sg-textarea-small" placeholder="(비어있음 — 직접 입력)"></textarea>
+          </div>
+          <div class="sg-prompt-group">
+            <label class="sg-prompt-label">채점 프롬프트 (System Prompt)</label>
+            <textarea class="sg-textarea-mid" placeholder="(비어있음 — 직접 입력)"></textarea>
+          </div>
+        </div>
+      </div>
+    </div>
+    <aside class="sg-sidebar">
+      <div class="sg-side-card">
+        <div class="sg-side-title">🤖 AI 모델 선택</div>
+        <div class="sg-model-group-title">GPT 모델</div>
+        <div class="sg-model-list">
+          <button class="sg-model-pill">GPT-4o mini</button>
+          <button class="sg-model-pill">GPT-5.3 Instant</button>
+          <button class="sg-model-pill">GPT-5.4 Thinking</button>
+          <button class="sg-model-pill">GPT-5.4 Pro</button>
+        </div>
+        <div class="sg-model-group-title">Gemini 모델</div>
+        <div class="sg-model-list">
+          <button class="sg-model-pill active">Gemini 3.1 Pro</button>
+          <button class="sg-model-pill">Gemini 3.1 Flash-Lite</button>
+        </div>
+      </div>
+      <div class="sg-side-card">
+        <div class="sg-side-title">⚙️ 파라미터 설정</div>
+        <div class="sg-param-group">
+          <div class="sg-param-row"><span class="sg-param-label">temperature</span><span class="sg-param-value">0.1</span></div>
+          <input type="range" class="sg-range" min="0" max="1" step="0.1" value="0.1">
+          <div class="sg-param-row" style="margin-top:10px;"><span class="sg-param-label">top_p</span><span class="sg-param-value">1.0</span></div>
+          <input type="range" class="sg-range" min="0" max="1" step="0.1" value="1.0">
+          <div class="sg-param-row" style="margin-top:10px;"><span class="sg-param-label">max_tokens</span><span class="sg-param-value">2048</span></div>
+          <input type="range" class="sg-range" min="100" max="8192" step="100" value="2048">
+        </div>
+      </div>
+      <button class="sg-run-btn disabled">▶ AI 실행</button>
+    </aside>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════════════
+     SCREEN 6 — 새 버전 저장 직후
+     ═══════════════════════════════════════════════════════════ -->
+<div class="screen-wrapper">
+  <div class="screen-label">
+    <span class="badge">S6</span> SCREEN 6 — 새 버전 저장 직후
+    <span class="desc">isDraftMode=false / v4 확정, 저장 시간 기록됨</span>
+  </div>
+  <div class="sg-header">
+    <div class="sg-title">Prompt Studio</div>
+    <div class="sg-subtitle">문항 선택부터 AI 정밀 분석까지 원스톱 채점 자동화를 경험하세요.</div>
+  </div>
+  <div class="sg-container">
+    <div class="sg-pipeline">
+      <div class="sg-step-card">
+        <div class="sg-card-content">
+          <div class="sg-card-header">
+            <span class="sg-card-label">등록 문항 선택</span>
+            <span class="sg-card-badge-req">필수</span>
+          </div>
+          <div class="assign-list" style="max-height:60px;">
+            <div class="assign-item active"><span class="tag">[중등-수학]</span>2차 방정식 풀이</div>
+          </div>
+        </div>
+      </div>
+      <!-- Step 3: 저장 완료 -->
+      <div class="sg-step-card">
+        <div class="sg-card-content">
+          <div class="sg-card-header" style="flex-direction:column;align-items:flex-start;gap:8px;">
+            <div style="display:flex;width:100%;justify-content:space-between;align-items:center;">
+              <div style="display:flex;align-items:center;gap:8px;">
+                <span class="sg-card-label">시스템 프롬프트 (버전 관리)</span>
+                <div class="eval-toggle">
+                  <button class="active">정성평가</button>
+                  <button>정량평가</button>
+                </div>
+              </div>
+              <div style="display:flex;gap:8px;align-items:center;">
+                <button class="btn-sm btn-live">✔️ DB(Live) 적용</button>
+                <button class="btn-sm btn-delete">🗑️ 삭제</button>
+                <select class="sg-select-full" style="width:auto;min-width:220px;">
+                  <option>v1 | 2026-03-25 17:20:55 🔴 Live</option>
+                  <option>v2 | 2026-03-25 18:05:22</option>
+                  <option>v3 | 2026-03-25 19:11:44</option>
+                  <option selected>v4 | 2026-03-26 10:23:11</option>
+                </select>
+                <button class="btn-sm btn-new">+ 새 버전 추가</button>
+              </div>
+            </div>
+            <div class="version-desc">
+              <span class="version-desc-icon">📋 버전 설명</span>
+              <input class="version-desc-input" value="저장된 내용이 없습니다." readonly>
+            </div>
+          </div>
+          <div class="sg-prompt-group">
+            <label class="sg-prompt-label">OCR 프롬프트</label>
+            <textarea class="sg-textarea-small">새로 작성된 OCR 프롬프트 내용...</textarea>
+          </div>
+          <div class="sg-prompt-group">
+            <label class="sg-prompt-label">채점 프롬프트 (System Prompt)</label>
+            <textarea class="sg-textarea-mid">새로 작성된 채점 프롬프트 내용...</textarea>
+          </div>
+        </div>
+      </div>
+    </div>
+    <aside class="sg-sidebar">
+      <div class="sg-side-card">
+        <div class="sg-side-title">🤖 AI 모델 선택</div>
+        <div class="sg-model-group-title">GPT 모델</div>
+        <div class="sg-model-list">
+          <button class="sg-model-pill">GPT-4o mini</button>
+          <button class="sg-model-pill">GPT-5.3 Instant</button>
+          <button class="sg-model-pill">GPT-5.4 Thinking</button>
+          <button class="sg-model-pill">GPT-5.4 Pro</button>
+        </div>
+        <div class="sg-model-group-title">Gemini 모델</div>
+        <div class="sg-model-list">
+          <button class="sg-model-pill active">Gemini 3.1 Pro</button>
+          <button class="sg-model-pill">Gemini 3.1 Flash-Lite</button>
+        </div>
+      </div>
+      <div class="sg-side-card">
+        <div class="sg-side-title">⚙️ 파라미터 설정</div>
+        <div class="sg-param-group">
+          <div class="sg-param-row"><span class="sg-param-label">temperature</span><span class="sg-param-value">0.1</span></div>
+          <input type="range" class="sg-range" min="0" max="1" step="0.1" value="0.1">
+        </div>
+      </div>
+      <button class="sg-run-btn disabled">▶ AI 실행</button>
+    </aside>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════════════
+     SCREEN 7 — 답안 업로드 완료 + AI 실행 대기
+     ═══════════════════════════════════════════════════════════ -->
+<div class="screen-wrapper">
+  <div class="screen-label">
+    <span class="badge">S7</span> SCREEN 7 — 답안 업로드 완료 + AI 실행 대기
+    <span class="desc">문항 선택 + 이미지 업로드 완료 / result=null / isRunning=false</span>
+  </div>
+  <div class="sg-header">
+    <div class="sg-title">Prompt Studio</div>
+    <div class="sg-subtitle">문항 선택부터 AI 정밀 분석까지 원스톱 채점 자동화를 경험하세요.</div>
+  </div>
+  <div class="sg-container">
+    <div class="sg-pipeline">
+      <div class="sg-step-card">
+        <div class="sg-card-content">
+          <div class="sg-card-header">
+            <span class="sg-card-label">등록 문항 선택</span>
+            <span class="sg-card-badge-req">필수</span>
+          </div>
+          <div class="assign-list" style="max-height:60px;">
+            <div class="assign-item active"><span class="tag">[중등-수학]</span>2차 방정식 풀이</div>
+          </div>
+          <div class="sg-loaded-data">
+            <div class="sg-data-row"><strong>[문제]</strong> x² - 5x + 6 = 0의 해를 구하고 풀이 과정을 쓰시오.</div>
+            <div class="sg-data-row"><strong>[모범답안]</strong> (x-2)(x-3) = 0 따라서 x = 2 또는 x = 3.</div>
+            <div class="sg-data-row"><strong>[채점기준]</strong> - 인수분해 과정의 정확성 / - 최종 해 도출 여부</div>
+          </div>
+        </div>
+      </div>
+      <!-- Step 2: 업로드 완료 -->
+      <div class="sg-step-card">
+        <div class="sg-card-content">
+          <div class="sg-card-header">
+            <span class="sg-card-label">학생 답안 업로드 (이미지 또는 JSON)</span>
+            <span class="sg-card-badge-req">필수 1건</span>
+          </div>
+          <div class="sg-preview-container" style="position:relative;text-align:center;padding:10px;">
+            <div style="width:100%;height:160px;background:linear-gradient(135deg,#f0f4ff,#e8ecf4);border-radius:8px;display:flex;align-items:center;justify-content:center;border:1px solid #e2e8f0;font-size:.85rem;color:#64748b;">
+              <div>
+                <div style="font-size:2rem;margin-bottom:6px;">🖼️</div>
+                <div>student_answer_001.jpg</div>
+                <div style="font-size:.75rem;color:#94a3b8;">학생 답안 이미지 미리보기</div>
+              </div>
+            </div>
+            <button class="sg-btn-delete-img" style="position:absolute;top:14px;right:14px;">✕</button>
+          </div>
+        </div>
+      </div>
+      <!-- Step 3 (축소) -->
+      <div class="sg-step-card">
+        <div class="sg-card-content">
+          <div class="sg-card-header" style="flex-direction:column;align-items:flex-start;gap:8px;">
+            <div style="display:flex;width:100%;justify-content:space-between;align-items:center;">
+              <div style="display:flex;align-items:center;gap:8px;">
+                <span class="sg-card-label">시스템 프롬프트 (버전 관리)</span>
+                <div class="eval-toggle">
+                  <button class="active">정성평가</button>
+                  <button>정량평가</button>
+                </div>
+              </div>
+              <div style="display:flex;gap:8px;align-items:center;">
+                <span class="live-badge">🚀 현재 Live 모델</span>
+                <select class="sg-select-full" style="width:auto;min-width:220px;">
+                  <option>v1 | 2026-03-25 17:20:55 🔴 Live</option>
+                </select>
+                <button class="btn-sm btn-new">+ 새 버전 추가</button>
+              </div>
+            </div>
+          </div>
+          <div class="sg-prompt-group">
+            <label class="sg-prompt-label">OCR 프롬프트</label>
+            <textarea class="sg-textarea-small" style="height:50px;">Please transcribe the handwritten Korean text...</textarea>
+          </div>
+          <div class="sg-prompt-group">
+            <label class="sg-prompt-label">채점 프롬프트 (System Prompt)</label>
+            <textarea class="sg-textarea-mid" style="height:60px;">## [Role] You are an expert mathematics educator...</textarea>
+          </div>
+        </div>
+      </div>
+      <!-- No Result -->
+      <div class="sg-no-result">
+        <div class="icon">📋</div>
+        <div>아직 실행된 결과가 없습니다.</div>
+        <div class="hint">학생 답안을 업로드하고 <strong>AI 실행</strong>을 눌러주세요.</div>
+      </div>
+    </div>
+    <aside class="sg-sidebar">
+      <div class="sg-side-card">
+        <div class="sg-side-title">🤖 AI 모델 선택</div>
+        <div class="sg-model-group-title">GPT 모델</div>
+        <div class="sg-model-list">
+          <button class="sg-model-pill">GPT-4o mini</button>
+          <button class="sg-model-pill">GPT-5.3 Instant</button>
+          <button class="sg-model-pill">GPT-5.4 Thinking</button>
+          <button class="sg-model-pill">GPT-5.4 Pro</button>
+        </div>
+        <div class="sg-model-group-title">Gemini 모델</div>
+        <div class="sg-model-list">
+          <button class="sg-model-pill active">Gemini 3.1 Pro</button>
+          <button class="sg-model-pill">Gemini 3.1 Flash-Lite</button>
+        </div>
+      </div>
+      <div class="sg-side-card">
+        <div class="sg-side-title">⚙️ 파라미터 설정</div>
+        <div class="sg-param-group">
+          <div class="sg-param-row"><span class="sg-param-label">temperature</span><span class="sg-param-value">0.1</span></div>
+          <input type="range" class="sg-range" min="0" max="1" step="0.1" value="0.1">
+          <div class="sg-param-row" style="margin-top:10px;"><span class="sg-param-label">top_p</span><span class="sg-param-value">1.0</span></div>
+          <input type="range" class="sg-range" min="0" max="1" step="0.1" value="1.0">
+          <div class="sg-param-row" style="margin-top:10px;"><span class="sg-param-label">max_tokens</span><span class="sg-param-value">2048</span></div>
+          <input type="range" class="sg-range" min="100" max="8192" step="100" value="2048">
+        </div>
+      </div>
+      <button class="sg-run-btn enabled">▶ AI 실행</button>
+    </aside>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════════════
+     SCREEN 8 — AI 실행 중
+     ═══════════════════════════════════════════════════════════ -->
+<div class="screen-wrapper">
+  <div class="screen-label">
+    <span class="badge">S8</span> SCREEN 8 — AI 실행 중
+    <span class="desc">isRunning=true</span>
+  </div>
+  <div class="sg-header">
+    <div class="sg-title">Prompt Studio</div>
+    <div class="sg-subtitle">문항 선택부터 AI 정밀 분석까지 원스톱 채점 자동화를 경험하세요.</div>
+  </div>
+  <div class="sg-container">
+    <div class="sg-pipeline">
+      <div class="sg-step-card">
+        <div class="sg-card-content">
+          <div class="sg-card-header">
+            <span class="sg-card-label">등록 문항 선택</span>
+            <span class="sg-card-badge-req">필수</span>
+          </div>
+          <div class="assign-list" style="max-height:60px;">
+            <div class="assign-item active"><span class="tag">[중등-수학]</span>2차 방정식 풀이</div>
+          </div>
+        </div>
+      </div>
+      <div class="sg-step-card">
+        <div class="sg-card-content">
+          <div class="sg-card-header">
+            <span class="sg-card-label">학생 답안 업로드</span>
+            <span class="sg-card-badge-req">필수 1건</span>
+          </div>
+          <div style="text-align:center;padding:10px;">
+            <div style="width:100%;height:100px;background:linear-gradient(135deg,#f0f4ff,#e8ecf4);border-radius:8px;display:flex;align-items:center;justify-content:center;border:1px solid #e2e8f0;font-size:.85rem;color:#64748b;">
+              🖼️ student_answer_001.jpg
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="sg-step-card">
+        <div class="sg-card-content">
+          <div class="sg-card-header">
+            <span class="sg-card-label">시스템 프롬프트 (버전 관리)</span>
+          </div>
+          <div style="font-size:.82rem;color:#94a3b8;text-align:center;padding:12px;">(v1 Live 적용 중)</div>
+        </div>
+      </div>
+    </div>
+    <aside class="sg-sidebar">
+      <div class="sg-side-card">
+        <div class="sg-side-title">🤖 AI 모델 선택</div>
+        <div class="sg-model-group-title">GPT 모델</div>
+        <div class="sg-model-list">
+          <button class="sg-model-pill">GPT-4o mini</button>
+          <button class="sg-model-pill">GPT-5.3 Instant</button>
+          <button class="sg-model-pill">GPT-5.4 Thinking</button>
+          <button class="sg-model-pill">GPT-5.4 Pro</button>
+        </div>
+        <div class="sg-model-group-title">Gemini 모델</div>
+        <div class="sg-model-list">
+          <button class="sg-model-pill active">Gemini 3.1 Pro</button>
+          <button class="sg-model-pill">Gemini 3.1 Flash-Lite</button>
+        </div>
+      </div>
+      <div class="sg-side-card">
+        <div class="sg-side-title">⚙️ 파라미터 설정</div>
+        <div class="sg-param-group">
+          <div class="sg-param-row"><span class="sg-param-label">temperature</span><span class="sg-param-value">0.1</span></div>
+          <input type="range" class="sg-range" min="0" max="1" step="0.1" value="0.1">
+        </div>
+      </div>
+      <button class="sg-run-btn loading"><span class="spinner"></span> AI 채점 중...</button>
+    </aside>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════════════
+     SCREEN 9 — AI 실행 완료 (결과 표시)
+     ═══════════════════════════════════════════════════════════ -->
+<div class="screen-wrapper">
+  <div class="screen-label">
+    <span class="badge">S9</span> SCREEN 9 — AI 실행 완료 (결과 표시)
+    <span class="desc">result != null / isSaved=false</span>
+  </div>
+  <div class="sg-header">
+    <div class="sg-title">Prompt Studio</div>
+    <div class="sg-subtitle">문항 선택부터 AI 정밀 분석까지 원스톱 채점 자동화를 경험하세요.</div>
+  </div>
+  <div class="sg-container">
+    <div class="sg-pipeline">
+      <div class="sg-step-card">
+        <div class="sg-card-content">
+          <div class="sg-card-header">
+            <span class="sg-card-label">등록 문항 선택</span>
+            <span class="sg-card-badge-req">필수</span>
+          </div>
+          <div class="assign-list" style="max-height:60px;">
+            <div class="assign-item active"><span class="tag">[중등-수학]</span>2차 방정식 풀이</div>
+          </div>
+        </div>
+      </div>
+      <div class="sg-step-card">
+        <div class="sg-card-content">
+          <div class="sg-card-header">
+            <span class="sg-card-label">학생 답안 업로드</span>
+          </div>
+          <div style="text-align:center;padding:6px;">
+            <div style="width:100%;height:60px;background:#f0f4ff;border-radius:8px;display:flex;align-items:center;justify-content:center;border:1px solid #e2e8f0;font-size:.82rem;color:#64748b;">
+              🖼️ student_answer_001.jpg (업로드 완료)
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- Result Card -->
+      <div class="sg-result-card">
+        <div class="sg-card-header">
+          <span class="sg-card-label" style="color:#10B981;">📊 분석 완료</span>
+          <button class="sg-btn-archive">📥 아카이브에 저장</button>
+        </div>
+        <div class="sg-result-grid">
+          <div class="sg-res-box">
+            <label>OCR 변환 텍스트</label>
+            <div class="sg-res-text">작품의 주제는 인간의 외로움과 그것을 이겨내려는 마음입니다. 자연을 빌려 마음을 그렸습니다.</div>
+          </div>
+          <div class="sg-res-box">
+            <label>AI 채점 결과 (Raw)</label>
+            <pre class="sg-res-json">{
+  "grade": "우수 (A)",
+  "feedback": "키워드인 고독과 극복 의지를 잘 파악했습니다."
+}</pre>
+          </div>
+        </div>
+        <div class="sg-ai-eval-box">
+          <div class="sg-eval-title">
+            <span>🎯</span> AI 채점 품질 평가 <span class="sub">(과정 평가)</span>
+          </div>
+          <div class="sg-eval-grid">
+            <div class="sg-eval-item">
+              <label class="sg-prompt-label">평가 일치도</label>
+              <select class="sg-select-full">
+                <option selected>완전 일치</option>
+                <option>부분 일치</option>
+                <option>불일치</option>
+              </select>
+            </div>
+            <div class="sg-eval-item">
+              <label class="sg-prompt-label">오류 유형 (불일치 시)</label>
+              <select class="sg-select-full">
+                <option selected>해당 없음</option>
+                <option>OCR 인식 오류</option>
+                <option>채점 기준표 미준수</option>
+                <option>환각 현상 (거짓 논리)</option>
+                <option>포맷 오류</option>
+              </select>
+            </div>
+          </div>
+          <div class="sg-prompt-group" style="margin-top:12px;">
+            <label class="sg-prompt-label">연구진 코멘트 / 피드백</label>
+            <textarea class="sg-feedback-textarea" placeholder="AI가 틀린 부분이나 개선이 필요한 점을 적어주세요."></textarea>
+          </div>
+        </div>
+        <div class="sg-metrics-footer">
+          <div><strong>채점 시간:</strong> 2.42s</div>
+          <div><strong>토큰:</strong> 입 420 / 출 156 (총 576)</div>
+          <div>
+            <strong>비용:</strong> $0.00085 <span class="sg-cost-krw">/ 1.15원</span>
+            <button class="sg-btn-refresh" title="환율 동기화">↻</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <aside class="sg-sidebar">
+      <div class="sg-side-card">
+        <div class="sg-side-title">🤖 AI 모델 선택</div>
+        <div class="sg-model-group-title">GPT 모델</div>
+        <div class="sg-model-list">
+          <button class="sg-model-pill">GPT-4o mini</button>
+          <button class="sg-model-pill">GPT-5.3 Instant</button>
+          <button class="sg-model-pill">GPT-5.4 Thinking</button>
+          <button class="sg-model-pill">GPT-5.4 Pro</button>
+        </div>
+        <div class="sg-model-group-title">Gemini 모델</div>
+        <div class="sg-model-list">
+          <button class="sg-model-pill active">Gemini 3.1 Pro</button>
+          <button class="sg-model-pill">Gemini 3.1 Flash-Lite</button>
+        </div>
+      </div>
+      <div class="sg-side-card">
+        <div class="sg-side-title">⚙️ 파라미터 설정</div>
+        <div class="sg-param-group">
+          <div class="sg-param-row"><span class="sg-param-label">temperature</span><span class="sg-param-value">0.1</span></div>
+          <input type="range" class="sg-range" min="0" max="1" step="0.1" value="0.1">
+          <div class="sg-param-row" style="margin-top:10px;"><span class="sg-param-label">top_p</span><span class="sg-param-value">1.0</span></div>
+          <input type="range" class="sg-range" min="0" max="1" step="0.1" value="1.0">
+          <div class="sg-param-row" style="margin-top:10px;"><span class="sg-param-label">max_tokens</span><span class="sg-param-value">2048</span></div>
+          <input type="range" class="sg-range" min="100" max="8192" step="100" value="2048">
+        </div>
+      </div>
+      <button class="sg-run-btn enabled">▶ AI 실행</button>
+    </aside>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════════════
+     SCREEN 10 — 아카이브 저장 완료
+     ═══════════════════════════════════════════════════════════ -->
+<div class="screen-wrapper">
+  <div class="screen-label">
+    <span class="badge">S10</span> SCREEN 10 — 아카이브 저장 완료
+    <span class="desc">isSaved=true / 아카이브 저장 버튼 비활성화(초록)</span>
+  </div>
+  <div class="sg-header">
+    <div class="sg-title">Prompt Studio</div>
+    <div class="sg-subtitle">문항 선택부터 AI 정밀 분석까지 원스톱 채점 자동화를 경험하세요.</div>
+  </div>
+  <div class="sg-container">
+    <div class="sg-pipeline">
+      <div class="sg-step-card">
+        <div class="sg-card-content">
+          <div class="sg-card-header">
+            <span class="sg-card-label">등록 문항 선택</span>
+            <span class="sg-card-badge-req">필수</span>
+          </div>
+          <div class="assign-list" style="max-height:60px;">
+            <div class="assign-item active"><span class="tag">[중등-수학]</span>2차 방정식 풀이</div>
+          </div>
+        </div>
+      </div>
+      <div class="sg-step-card">
+        <div class="sg-card-content">
+          <div class="sg-card-header">
+            <span class="sg-card-label">학생 답안 업로드</span>
+          </div>
+          <div style="text-align:center;padding:6px;">
+            <div style="width:100%;height:60px;background:#f0f4ff;border-radius:8px;display:flex;align-items:center;justify-content:center;border:1px solid #e2e8f0;font-size:.82rem;color:#64748b;">
+              🖼️ student_answer_001.jpg (업로드 완료)
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- Result Card — 저장 완료 -->
+      <div class="sg-result-card">
+        <div class="sg-card-header">
+          <span class="sg-card-label" style="color:#10B981;">📊 분석 완료</span>
+          <button class="sg-btn-archive saved" disabled>✓ 아카이브 저장됨</button>
+        </div>
+        <div class="sg-result-grid">
+          <div class="sg-res-box">
+            <label>OCR 변환 텍스트</label>
+            <div class="sg-res-text">작품의 주제는 인간의 외로움과 그것을 이겨내려는 마음입니다. 자연을 빌려 마음을 그렸습니다.</div>
+          </div>
+          <div class="sg-res-box">
+            <label>AI 채점 결과 (Raw)</label>
+            <pre class="sg-res-json">{
+  "grade": "우수 (A)",
+  "feedback": "키워드인 고독과 극복 의지를 잘 파악했습니다."
+}</pre>
+          </div>
+        </div>
+        <div class="sg-ai-eval-box">
+          <div class="sg-eval-title">
+            <span>🎯</span> AI 채점 품질 평가 <span class="sub">(과정 평가)</span>
+          </div>
+          <div class="sg-eval-grid">
+            <div class="sg-eval-item">
+              <label class="sg-prompt-label">평가 일치도</label>
+              <select class="sg-select-full"><option selected>완전 일치</option></select>
+            </div>
+            <div class="sg-eval-item">
+              <label class="sg-prompt-label">오류 유형 (불일치 시)</label>
+              <select class="sg-select-full"><option selected>해당 없음</option></select>
+            </div>
+          </div>
+          <div class="sg-prompt-group" style="margin-top:12px;">
+            <label class="sg-prompt-label">연구진 코멘트 / 피드백</label>
+            <textarea class="sg-feedback-textarea" placeholder="AI가 틀린 부분이나 개선이 필요한 점을 적어주세요."></textarea>
+          </div>
+        </div>
+        <div class="sg-metrics-footer">
+          <div><strong>채점 시간:</strong> 2.42s</div>
+          <div><strong>토큰:</strong> 입 420 / 출 156 (총 576)</div>
+          <div>
+            <strong>비용:</strong> $0.00085 <span class="sg-cost-krw">/ 1.15원</span>
+            <button class="sg-btn-refresh" title="환율 동기화">↻</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <aside class="sg-sidebar">
+      <div class="sg-side-card">
+        <div class="sg-side-title">🤖 AI 모델 선택</div>
+        <div class="sg-model-group-title">GPT 모델</div>
+        <div class="sg-model-list">
+          <button class="sg-model-pill">GPT-4o mini</button>
+          <button class="sg-model-pill">GPT-5.3 Instant</button>
+          <button class="sg-model-pill">GPT-5.4 Thinking</button>
+          <button class="sg-model-pill">GPT-5.4 Pro</button>
+        </div>
+        <div class="sg-model-group-title">Gemini 모델</div>
+        <div class="sg-model-list">
+          <button class="sg-model-pill active">Gemini 3.1 Pro</button>
+          <button class="sg-model-pill">Gemini 3.1 Flash-Lite</button>
+        </div>
+      </div>
+      <div class="sg-side-card">
+        <div class="sg-side-title">⚙️ 파라미터 설정</div>
+        <div class="sg-param-group">
+          <div class="sg-param-row"><span class="sg-param-label">temperature</span><span class="sg-param-value">0.1</span></div>
+          <input type="range" class="sg-range" min="0" max="1" step="0.1" value="0.1">
+          <div class="sg-param-row" style="margin-top:10px;"><span class="sg-param-label">top_p</span><span class="sg-param-value">1.0</span></div>
+          <input type="range" class="sg-range" min="0" max="1" step="0.1" value="1.0">
+          <div class="sg-param-row" style="margin-top:10px;"><span class="sg-param-label">max_tokens</span><span class="sg-param-value">2048</span></div>
+          <input type="range" class="sg-range" min="100" max="8192" step="100" value="2048">
+        </div>
+      </div>
+      <button class="sg-run-btn enabled">▶ AI 실행</button>
+    </aside>
+  </div>
+</div>
+
+<!-- Navigation -->
+<div style="max-width:1200px;margin:40px auto;padding:20px;background:#fff;border-radius:16px;box-shadow:var(--shadow);">
+  <h2 style="font-size:1.1rem;font-weight:800;margin-bottom:16px;">📋 상태별 버튼 노출 조건 요약표</h2>
+  <div style="overflow-x:auto;">
+    <table style="width:100%;border-collapse:collapse;font-size:.78rem;">
+      <thead>
+        <tr style="background:#f8fafc;">
+          <th style="padding:8px 12px;text-align:left;border-bottom:2px solid #e2e8f0;font-weight:700;">버튼</th>
+          <th style="padding:8px;text-align:center;border-bottom:2px solid #e2e8f0;">S1 초기</th>
+          <th style="padding:8px;text-align:center;border-bottom:2px solid #e2e8f0;">S2 Live</th>
+          <th style="padding:8px;text-align:center;border-bottom:2px solid #e2e8f0;">S3 미등록</th>
+          <th style="padding:8px;text-align:center;border-bottom:2px solid #e2e8f0;">S4 비Live</th>
+          <th style="padding:8px;text-align:center;border-bottom:2px solid #e2e8f0;">S5 Draft</th>
+          <th style="padding:8px;text-align:center;border-bottom:2px solid #e2e8f0;">S6 저장후</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td style="padding:6px 12px;border-bottom:1px solid #f1f5f9;font-weight:600;">평가유형 토글</td><td style="text-align:center;border-bottom:1px solid #f1f5f9;">❌</td><td style="text-align:center;border-bottom:1px solid #f1f5f9;">✅</td><td style="text-align:center;border-bottom:1px solid #f1f5f9;">✅</td><td style="text-align:center;border-bottom:1px solid #f1f5f9;">✅</td><td style="text-align:center;border-bottom:1px solid #f1f5f9;">✅</td><td style="text-align:center;border-bottom:1px solid #f1f5f9;">✅</td></tr>
+        <tr><td style="padding:6px 12px;border-bottom:1px solid #f1f5f9;font-weight:600;">버전 드롭다운</td><td style="text-align:center;border-bottom:1px solid #f1f5f9;">❌</td><td style="text-align:center;border-bottom:1px solid #f1f5f9;">✅</td><td style="text-align:center;border-bottom:1px solid #f1f5f9;">✅</td><td style="text-align:center;border-bottom:1px solid #f1f5f9;">✅</td><td style="text-align:center;border-bottom:1px solid #f1f5f9;">✅</td><td style="text-align:center;border-bottom:1px solid #f1f5f9;">✅</td></tr>
+        <tr><td style="padding:6px 12px;border-bottom:1px solid #f1f5f9;font-weight:600;">🚀 Live 표시</td><td style="text-align:center;border-bottom:1px solid #f1f5f9;">❌</td><td style="text-align:center;border-bottom:1px solid #f1f5f9;">✅</td><td style="text-align:center;border-bottom:1px solid #f1f5f9;">❌</td><td style="text-align:center;border-bottom:1px solid #f1f5f9;">❌</td><td style="text-align:center;border-bottom:1px solid #f1f5f9;">❌</td><td style="text-align:center;border-bottom:1px solid #f1f5f9;">❌</td></tr>
+        <tr><td style="padding:6px 12px;border-bottom:1px solid #f1f5f9;font-weight:600;">✔️ DB(Live) 적용</td><td style="text-align:center;border-bottom:1px solid #f1f5f9;">❌</td><td style="text-align:center;border-bottom:1px solid #f1f5f9;">❌</td><td style="text-align:center;border-bottom:1px solid #f1f5f9;">❌</td><td style="text-align:center;border-bottom:1px solid #f1f5f9;">✅</td><td style="text-align:center;border-bottom:1px solid #f1f5f9;">❌</td><td style="text-align:center;border-bottom:1px solid #f1f5f9;">✅</td></tr>
+        <tr><td style="padding:6px 12px;border-bottom:1px solid #f1f5f9;font-weight:600;">🗑️ 삭제</td><td style="text-align:center;border-bottom:1px solid #f1f5f9;">❌</td><td style="text-align:center;border-bottom:1px solid #f1f5f9;">❌</td><td style="text-align:center;border-bottom:1px solid #f1f5f9;">❌</td><td style="text-align:center;border-bottom:1px solid #f1f5f9;">✅</td><td style="text-align:center;border-bottom:1px solid #f1f5f9;">❌</td><td style="text-align:center;border-bottom:1px solid #f1f5f9;">✅</td></tr>
+        <tr><td style="padding:6px 12px;border-bottom:1px solid #f1f5f9;font-weight:600;">+ 새 버전 추가</td><td style="text-align:center;border-bottom:1px solid #f1f5f9;">✅</td><td style="text-align:center;border-bottom:1px solid #f1f5f9;">✅</td><td style="text-align:center;border-bottom:1px solid #f1f5f9;">✅</td><td style="text-align:center;border-bottom:1px solid #f1f5f9;">✅</td><td style="text-align:center;border-bottom:1px solid #f1f5f9;">❌</td><td style="text-align:center;border-bottom:1px solid #f1f5f9;">✅</td></tr>
+        <tr><td style="padding:6px 12px;border-bottom:1px solid #f1f5f9;font-weight:600;">💾 새 버전 저장</td><td style="text-align:center;border-bottom:1px solid #f1f5f9;">❌</td><td style="text-align:center;border-bottom:1px solid #f1f5f9;">❌</td><td style="text-align:center;border-bottom:1px solid #f1f5f9;">❌</td><td style="text-align:center;border-bottom:1px solid #f1f5f9;">❌</td><td style="text-align:center;border-bottom:1px solid #f1f5f9;">✅</td><td style="text-align:center;border-bottom:1px solid #f1f5f9;">❌</td></tr>
+        <tr><td style="padding:6px 12px;border-bottom:1px solid #f1f5f9;font-weight:600;">AI 실행 버튼</td><td style="text-align:center;border-bottom:1px solid #f1f5f9;">🔘</td><td style="text-align:center;border-bottom:1px solid #f1f5f9;">🔘</td><td style="text-align:center;border-bottom:1px solid #f1f5f9;">🔘</td><td style="text-align:center;border-bottom:1px solid #f1f5f9;">🔘</td><td style="text-align:center;border-bottom:1px solid #f1f5f9;">🔘</td><td style="text-align:center;border-bottom:1px solid #f1f5f9;">🔵</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+</body>
+</html>
