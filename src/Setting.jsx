@@ -392,6 +392,7 @@ function Setting() {
         setActiveSettingsMenu={setActiveSettingsMenu}
         isProfileDropdownOpen={isProfileDropdownOpen}
         setIsProfileDropdownOpen={setIsProfileDropdownOpen}
+        setShowAnalysis={setShowAnalysis}
       />
 
       {/* --- 메인 콘텐츠 영역 --- */}
@@ -635,8 +636,8 @@ function Setting() {
 
       {/* --- 일괄 채점 워크플로우 모달 (NeoStudio2Lite 확인) --- */}
       {isBulkModalOpen && (
-        <div className="modal-overlay">
-          <div className="modal-container" style={{ width: '800px', height: 'auto', minHeight: '400px', padding: '2rem' }}>
+        <div className="modal-overlay" onClick={() => setIsBulkModalOpen(false)}>
+          <div className="modal-container" style={{ width: '800px', height: 'auto', minHeight: '400px', padding: '2rem' }} onClick={e => e.stopPropagation()}>
             <button className="btn-modal-close" onClick={() => setIsBulkModalOpen(false)}>×</button>
             <h2 style={{ textAlign: 'center', fontSize: '1.5rem', marginBottom: '2rem' }}>펜 데이터 동기화</h2>
 
@@ -1145,8 +1146,8 @@ function Setting() {
 
       {/* --- 펜 펌웨어 업데이트 모달 --- */}
       {isFirmwareModalOpen && (
-        <div className="modal-overlay" style={{ zIndex: 10003 }}>
-          <div className="modal-container" style={{ width: '800px', height: '600px', padding: '2rem', display: 'flex', flexDirection: 'column' }}>
+        <div className="modal-overlay" style={{ zIndex: 10003 }} onClick={handleCloseFirmwareModal}>
+          <div className="modal-container" style={{ width: '800px', height: '600px', padding: '2rem', display: 'flex', flexDirection: 'column' }} onClick={e => e.stopPropagation()}>
             <button className="btn-modal-close" onClick={handleCloseFirmwareModal}>×</button>
             <h2 style={{ fontSize: '1.5rem', fontWeight: 800, marginBottom: '0.5rem' }}>펜 펌웨어 업데이트 명단</h2>
             <p style={{ color: '#8A94A1', fontSize: '0.9rem', marginBottom: '2rem' }}>현재 연결된 펜의 펌웨어 상태를 확인하고 일괄 업데이트를 진행할 수 있습니다.</p>
@@ -1253,8 +1254,8 @@ function Setting() {
 
       {/* --- 펜 초기화 확인 모달 --- */}
       {isResetModalOpen && (
-        <div className="modal-overlay" style={{ zIndex: 10002 }}>
-          <div className="modal-container" style={{ width: '440px', height: 'auto', padding: '2rem', textAlign: 'center' }}>
+        <div className="modal-overlay" style={{ zIndex: 10002 }} onClick={() => setIsResetModalOpen(false)}>
+          <div className="modal-container" style={{ width: '440px', height: 'auto', padding: '2rem', textAlign: 'center' }} onClick={e => e.stopPropagation()}>
             <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>⚠️</div>
             <h3 style={{ fontSize: '1.25rem', fontWeight: 800, marginBottom: '1rem' }}>기기 초기화 확인</h3>
             <p style={{ fontSize: '0.95rem', color: '#4E5968', lineHeight: '1.6', marginBottom: '2rem' }}>
@@ -1285,8 +1286,8 @@ function Setting() {
 
       {/* --- 채점 종료 확인 모달 --- */}
       {isConfirmCloseOpen && (
-        <div className="modal-overlay" style={{ zIndex: 10001 }}>
-          <div className="modal-container" style={{ width: '480px', height: 'auto', padding: '2.5rem', textAlign: 'center' }}>
+        <div className="modal-overlay" style={{ zIndex: 10001 }} onClick={() => setIsConfirmCloseOpen(false)}>
+          <div className="modal-container" style={{ width: '480px', height: 'auto', padding: '2.5rem', textAlign: 'center' }} onClick={e => e.stopPropagation()}>
             <div style={{ position: 'relative', display: 'inline-block', marginBottom: '1.5rem' }}>
               <div style={{ background: '#991B1B', color: 'white', width: '24px', height: '24px', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.8rem', fontWeight: 800, position: 'absolute', top: '-10px', left: '-25px' }}>7</div>
               <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='64' viewBox='0 0 24 24' fill='none' stroke='%231E2225' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4'%3E%3C/path%3E%3Cpolyline points='16 17 21 12 16 7'%3E%3C/polyline%3E%3Cline x1='21' y1='12' x2='9' y2='12'%3E%3C/line%3E%3C/svg%3E" alt="Exit" style={{ width: '64px', height: '64px' }} />

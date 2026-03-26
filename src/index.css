@@ -48,6 +48,8 @@ body {
   border-right: 1px solid var(--border);
   display: flex;
   flex-direction: column;
+  position: relative;
+  z-index: 100;
   padding: 1.5rem 0;
   flex-shrink: 0;
 }
@@ -2431,6 +2433,13 @@ body {
   outline: none;
   font-size: 0.9rem;
   font-family: 'Consolas', monospace;
+}
+
+.sg-textarea-small::placeholder,
+.sg-textarea-mid::placeholder {
+  color: #94a3b8;
+  font-family: inherit;
+  font-size: 0.85rem;
 }
 
 /* AI Analysis Result Rendering */

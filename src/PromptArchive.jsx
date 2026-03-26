@@ -135,6 +135,7 @@ export default function PromptArchive({ tests, onSetTests, onRunAnalysis }) {
               <th>날짜</th>
               <th>과제명</th>
               <th>과목</th>
+              <th>프롬프트 버전</th>
               <th>평가모드</th>
               <th>사용 모델</th>
               <th>결과 분류(정확도)</th>
@@ -153,6 +154,13 @@ export default function PromptArchive({ tests, onSetTests, onRunAnalysis }) {
                 <td className="ta-td-title">{t.title}</td>
                 <td>
                   <span className="ta-cat-badge">{t.category}</span>
+                </td>
+                <td>
+                  {t.promptVersionId ? (
+                    <span style={{ fontSize: '0.78rem', fontWeight: '600', color: '#2A75F3', background: '#EBF2FF', padding: '2px 7px', borderRadius: '4px' }}>
+                      {t.promptVersionId}
+                    </span>
+                  ) : <span style={{ color: '#94a3b8', fontSize: '0.78rem' }}>-</span>}
                 </td>
                 <td>
                   <span className="ta-mode-text">{t.evalMode}</span>

@@ -1,0 +1,26 @@
+{
+  "permissions": {
+    "allow": [
+      "mcp__Claude_Preview__preview_start",
+      "Bash(python -c \":*)",
+      "WebSearch",
+      "WebFetch(domain:developers.figma.com)",
+      "WebFetch(domain:help.figma.com)",
+      "Bash(Get-Content \"C:\\\\Users\\\\NeoLab\\\\AppData\\\\Roaming\\\\Claude\\\\logs\\\\main.log\")",
+      "Bash(Select-String -Pattern \"error|mcp|figma\" -CaseSensitive:$false)",
+      "Bash(Select-Object -Last 30)",
+      "Bash(npm --version)",
+      "Bash(npx -y figma-mcp --help)",
+      "mcp__figma__add_figma_file",
+      "Bash(npm show:*)",
+      "Bash(npm pack:*)",
+      "Bash(npm view:*)",
+      "Read(//c/tmp/**)",
+      "Bash(npm install:*)",
+      "Read(//tmp/node_modules/figma-mcp/dist/**)",
+      "Bash(find /c/Users/NeoLab/AppData -name index.cjs -path *figma-mcp*)",
+      "Bash(node -e \"require\\(''''figma-mcp''''\\)\")",
+      "Bash(npm root:*)"
+    ]
+  }
+}

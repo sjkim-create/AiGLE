@@ -10,8 +10,13 @@ const Sidebar = ({
     activeSettingsMenu,
     setActiveSettingsMenu,
     isProfileDropdownOpen,
-    setIsProfileDropdownOpen
+    setIsProfileDropdownOpen,
+    setShowAnalysis
 }) => {
+  const handleMenuChange = (menu) => {
+    setActiveMenu(menu);
+    if (setShowAnalysis) setShowAnalysis(false);
+  };
     return (
         <aside className="main-sidebar">
             <div
@@ -19,7 +24,7 @@ const Sidebar = ({
                 style={{ cursor: 'pointer' }}
                 onClick={() => {
                     setIsSettingsMode(false);
-                    setActiveMenu('과제 및 채점관리');
+                    handleMenuChange('과제 및 채점관리');
                     setActiveSubMenu('채점 관리');
                 }}
             >
@@ -52,15 +57,15 @@ const Sidebar = ({
             <nav className="nav-menu">
                 {!isSettingsMode ? (
                     <>
-                        <div className={`nav-item ${activeMenu === '대시보드' ? 'active' : ''}`} onClick={() => setActiveMenu('대시보드')}>
+                        <div className={`nav-item ${activeMenu === '대시보드' ? 'active' : ''}`} onClick={() => handleMenuChange('대시보드')}>
                             📊 대시보드
                         </div>
-                        <div className={`nav-item ${activeMenu === '학생' ? 'active' : ''}`} onClick={() => setActiveMenu('학생')}>
+                        <div className={`nav-item ${activeMenu === '학생' ? 'active' : ''}`} onClick={() => handleMenuChange('학생')}>
                             👥 학생 <span className="n-badge" style={{ marginLeft: 'auto', background: 'var(--success)' }}>N</span>
                         </div>
                         <div
                             className={`nav-item ${activeMenu === '과제 및 채점관리' ? 'active' : ''}`}
-                            onClick={() => setActiveMenu('과제 및 채점관리')}
+                            onClick={() => handleMenuChange('과제 및 채점관리')}
                         >
                             📝 과제 및 채점관리 <span className="arrow">▼</span>
                         </div>
@@ -81,13 +86,13 @@ const Sidebar = ({
                                 </div>
                             </div>
                         )}
-                        <div className={`nav-item ${activeMenu === '게시판' ? 'active' : ''}`} onClick={() => setActiveMenu('게시판')}>
+                        <div className={`nav-item ${activeMenu === '게시판' ? 'active' : ''}`} onClick={() => handleMenuChange('게시판')}>
                             📋 게시판 <span className="n-badge" style={{ marginLeft: 'auto', background: 'var(--success)' }}>N</span>
                         </div>
                         <div
                             className={`nav-item ${activeMenu === 'Prompt Studio' ? 'active' : ''}`}
                             onClick={() => {
-                                setActiveMenu('Prompt Studio');
+                                handleMenuChange('Prompt Studio');
                                 if (activeMenu !== 'Prompt Studio') setActiveSubMenu('Prompt Studio');
                             }}
                         >
@@ -98,13 +103,13 @@ const Sidebar = ({
                             <div className="nav-sub-menu">
                                 <div
                                     className={`nav-sub-item ${activeSubMenu === 'Prompt Studio' ? 'active' : ''}`}
-                                    onClick={() => setActiveSubMenu('Prompt Studio')}
+                                    onClick={() => { setActiveSubMenu('Prompt Studio'); if (setShowAnalysis) setShowAnalysis(false); }}
                                 >
                                     ⊙ Prompt Studio
                                 </div>
                                 <div
                                     className={`nav-sub-item ${activeSubMenu === 'Prompt 아카이브' ? 'active' : ''}`}
-                                    onClick={() => setActiveSubMenu('Prompt 아카이브')}
+                                    onClick={() => { setActiveSubMenu('Prompt 아카이브'); if (setShowAnalysis) setShowAnalysis(false); }}
                                 >
                                     ⊙ Prompt 아카이브
                                 </div>
