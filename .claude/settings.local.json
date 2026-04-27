@@ -20,7 +20,10 @@
       "Read(//tmp/node_modules/figma-mcp/dist/**)",
       "Bash(find /c/Users/NeoLab/AppData -name index.cjs -path *figma-mcp*)",
       "Bash(node -e \"require\\(''''figma-mcp''''\\)\")",
-      "Bash(npm root:*)"
+      "Bash(npm root:*)",
+      "Bash(python build_feedback_matrix.py)",
+      "Bash(python -c ' *)",
+      "Bash(git add *)"
     ]
   }
 }
