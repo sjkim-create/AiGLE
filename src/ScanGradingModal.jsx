@@ -35,9 +35,9 @@
  *
  *   슬롯 상태 (기준 장수 = TSK-02 「답안지 출력 장수 설정」):
  *     · ok       장수 == 기준
- *     · over     장수 >  기준 — 차단하지 않음. 중복 스캔 의심으로 표기만
- *     · short    0 < 장수 < 기준 — 부분 누락
- *     · missing  장수 == 0 — 결손
+ *     · over     장수 >  기준 — 중복 스캔 의심
+ *     · short    장수 <  기준 — 답안지가 덜 붙었다. **0장도 여기 포함**한다 `[v4.6]`
+ *                (舊 `missing`(0장)은 차단·빈 장 자리·해소 방법이 short와 같아 흡수했다)
  *   덮어쓰기(overwrite)는 상태가 아니라 **플래그**다 (답안 있음 학생 + 장수 ≥ 1).
  *
  * [SCR-01 v3.24] 답안 기제출(`답안 있음`) 학생 처리 — 3단 게이트 (슬롯 단위로 승계)
@@ -47,8 +47,8 @@
  *
  * [SCR-05 v4.0] 부분 제출 처리 — 누락 감지 시 3지선다
  *   · 있는 답안으로 계속 채점 (권장)  · 누락 학생 제외하고 채점  · 취소하고 파일 추가
- *   「계속 채점」에서도 답안지가 아예 없는 문항(missing)은 채점 대상이 아니다. 장수만 부족한
- *   문항(short)은 기준 장수가 어디까지나 **예상값**이므로 있는 장만으로 채점한다.
+ *   「계속 채점」에서도 답안지가 한 장도 없는 문항은 채점 대상이 아니다. 한 장이라도 붙은
+ *   문항은 기준 장수가 어디까지나 **예상값**이므로 있는 장만으로 채점한다.
  */
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
@@ -64,10 +64,16 @@ const STEPS = [
 // [v4.0] 슬롯 상태 토큰 — 기준 장수 대비 실제 장수로 판정
 const SLOT_TOKEN = {
   ok: { label: '연결', bg: '#F0FDF4', border: '#86EFAC', color: '#166534' },
-  over: { label: '초과', bg: '#EFF6FF', border: '#93C5FD', color: '#1D4ED8' },
-  short: { label: '부족', bg: '#FFFBEB', border: '#FDE68A', color: '#92400E' },
-  missing: { label: '미지정', bg: '#F8FAFC', border: '#CBD5E1', color: '#64748B' },
+  over: { label: '답안지 초과', bg: '#EFF6FF', border: '#93C5FD', color: '#1D4ED8' },
+  /* [v4.6] 舊 `missing`(0장) 폐기 — `short`에 흡수. 0장도 차단 대상이므로
+   * 중립 회색이 아니라 주의 노랑으로 보이는 편이 실제 의미와 맞다. */
+  short: { label: '답안지 부족', bg: '#FFFBEB', border: '#FDE68A', color: '#92400E' },
 };
+
+/* [v4.6] 좌측 학생 × 문항 매트릭스의 문항 칸 폭.
+ * 상태 라벨이 `초과`/`부족` → `답안지 초과`/`답안지 부족`으로 길어져 66px로는 넘쳤다.
+ * 좌측 패널 폭(352 → 392)도 같은 양만큼 늘려 학생 이름 칸이 줄지 않게 했다. */
+const SLOT_CELL_W = 78;
 
 // [v4.0] OCR 신뢰도 3단계
 const CONFIDENCE_TOKEN = {
@@ -216,6 +222,19 @@ const ScanGradingModal = ({
     setMatchResults((prev) => prev.filter((r) => r.fileId !== id));
   };
 
+  /* [v4.6] 업로드 초기화 — [전체 삭제]와 [← 파일 다시 선택]이 같은 동작을 쓴다.
+   * 「파일 다시 선택」은 말 그대로 처음부터 다시 고르는 것이므로 이전 업로드와
+   * 판별 결과를 남기지 않는다. 미리보기 URL도 함께 해제해야 파일을 여러 번
+   * 갈아 끼울 때 메모리에 쌓이지 않는다. */
+  const resetUploads = () => {
+    files.forEach((f) => { if (f.previewUrl) URL.revokeObjectURL(f.previewUrl); });
+    setFiles([]);
+    setMatchResults([]);
+    setSelectedKey(null);
+    setOpenMenu(null);
+    setPreviewFileId(null);
+  };
+
   // mock 파일 — 학생 × 문항 × 기준 장수만큼 생성하되, 일부러 상태를 흩뜨려
   // 연결 결과 확인(Step 3)의 상태 그룹이 모두 채워지도록 만든다
   const injectMockFiles = () => {
@@ -227,7 +246,7 @@ const ScanGradingModal = ({
       if (isAnswerStudent(s)) return;
       questionList.forEach((q, qi) => {
         // 시연용 결손: 3번째 학생의 마지막 문항은 통째로 누락
-        if (si === 2 && qi === questionList.length - 1) return;
+        if (si === 2 && qi === questionList.length - 1) return;  // 0장 → `부족 0/N장`
         let need = q.sheets;
         if (si === 1 && qi === 0 && q.sheets > 1) need = q.sheets - 1; // 부족(short)
         if (si === 0 && qi === 1) need = q.sheets + 1;                 // 초과(over) — 중복 스캔 시연
@@ -312,7 +331,7 @@ const ScanGradingModal = ({
         return nx;
       });
       /* [v4.4] 교체 되돌리기 — `답안 있음` 학생의 슬롯을 비우면 기존 답안이 다시 올라온다.
-       * 이 복원이 없으면 잘못 교체한 순간 그 문항이 `미지정`이 되어 채점 시작이 막히고
+       * 이 복원이 없으면 잘못 교체한 순간 그 문항이 `부족`(0장)이 되어 채점 시작이 막히고
        * (§5.6 v4.3), 교사에게 되돌릴 방법이 남지 않는다. */
       const st = before && answerIdSet.has(before.studentId)
         ? targetStudents.find((x) => x.id === before.studentId) : null;
@@ -354,8 +373,7 @@ const ScanGradingModal = ({
     if (slotHasExisting(slot)) return 'ok';
     const n = slot.files.length;
     const need = slot.question.sheets;
-    if (n === 0) return 'missing';
-    if (n < need) return 'short';
+    if (n < need) return 'short';   // [v4.6] 0장도 `부족`. 舊 `missing` 분기 폐기
     if (n > need) return 'over';
     return 'ok';
   };
@@ -382,7 +400,7 @@ const ScanGradingModal = ({
 
   /* ─── [v4.3] 채점 시작 차단 조건 ───
    * 미분류 파일은 **무시**한다 (어느 슬롯에도 붙지 않아 채점에 관여하지 않음).
-   * 슬롯이 하나라도 `초과`·`부족`·`미지정`이거나, 연결된 답안지에 `확인 필요`가 남아 있으면 막는다.
+   * 슬롯이 하나라도 `초과`·`부족`이거나, 연결된 답안지에 `확인 필요`가 남아 있으면 막는다.
    * 舊 v4.2는 이 상황들을 통과시키고 완료 요약에서 고지만 했으나,
    * 「데이터가 덜 갖춰진 채로 채점이 확정된다」는 문제가 커서 사전 차단으로 전환했다. */
   const abnormalSlots = slots.filter((sl) => slotStatus(sl) !== 'ok');
@@ -393,9 +411,8 @@ const ScanGradingModal = ({
     if (gradableSlots.length === 0) return '채점 대상이 없습니다. 학생·문항에 연결된 답안지가 한 건도 없습니다.';
     const parts = [];
     const n = (st) => abnormalSlots.filter((sl) => slotStatus(sl) === st).length;
-    if (n('over')) parts.push(`초과 ${n('over')}건`);
-    if (n('short')) parts.push(`부족 ${n('short')}건`);
-    if (n('missing')) parts.push(`미지정 ${n('missing')}건`);
+    if (n('over')) parts.push(`답안지 초과 ${n('over')}건`);
+    if (n('short')) parts.push(`답안지 부족 ${n('short')}건`);
     if (pendingCheckFiles.length) parts.push(`확인 필요 ${pendingCheckFiles.length}장`);
     return `${parts.join(' · ')}을(를) 먼저 정리해 주세요. 모든 문항이 기준 장수를 채우고 확인이 끝나야 채점을 시작할 수 있습니다.`;
   })();
@@ -410,7 +427,7 @@ const ScanGradingModal = ({
   const partiallyGradedCount = gradableStudentIds.length - fullyGradedStudentIds.length;
 
 
-  // 미분류 파일을 특정 슬롯으로 바로 지정 (결손·부족 그룹에서 호출)
+  // 미분류 파일을 특정 슬롯으로 바로 지정 (부족 슬롯의 빈 장 자리에서 호출)
   const assignFileToSlot = (fileId, sl, sheetNo = null) => updateAssign(fileId, {
     studentId: sl.student.id, questionNo: sl.question.id, sheetNo,
   });
@@ -637,7 +654,9 @@ const ScanGradingModal = ({
                 <div style={{ display: 'inline-flex', gap: 8 }}>
                   <label style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '7px 16px', borderRadius: 8, background: '#2A75F3', color: 'white', fontSize: 'var(--neo-font-size-sm)', fontWeight: 800, cursor: 'pointer' }}>
                     파일 선택
-                    <input type="file" multiple accept=".pdf,.png,.jpg,.jpeg" style={{ display: 'none' }} onChange={(e) => handleFilesAdd(e.target.files)} />
+                    <input type="file" multiple accept=".pdf,.png,.jpg,.jpeg" style={{ display: 'none' }}
+                      /* [v4.6] 초기화 후 같은 파일을 다시 골라도 onChange가 뜨도록 값을 비운다 */
+                      onChange={(e) => { handleFilesAdd(e.target.files); e.target.value = ''; }} />
                   </label>
                   <button onClick={injectMockFiles} style={{ padding: '7px 14px', borderRadius: 8, background: 'white', border: '1px solid #CBD5E1', color: '#475569', fontSize: 'var(--neo-font-size-sm)', fontWeight: 700, cursor: 'pointer' }}>
                     🧪 데모 파일
@@ -649,7 +668,7 @@ const ScanGradingModal = ({
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
                   <h3 style={{ margin: 0, fontSize: 'var(--neo-font-size-base)', fontWeight: 800 }}>업로드된 파일 <span style={{ color: '#2A75F3' }}>{files.length}개</span></h3>
                   {files.length > 0 && (
-                    <button onClick={() => { setFiles([]); setMatchResults([]); }} style={{ padding: '4px 10px', background: 'white', border: '1px solid #E2E8F0', borderRadius: 6, color: '#94A3B8', fontSize: 'var(--neo-font-size-xs)', cursor: 'pointer' }}>전체 삭제</button>
+                    <button onClick={resetUploads} style={{ padding: '4px 10px', background: 'white', border: '1px solid #E2E8F0', borderRadius: 6, color: '#94A3B8', fontSize: 'var(--neo-font-size-xs)', cursor: 'pointer' }}>전체 삭제</button>
                   )}
                 </div>
                 {files.length === 0 ? (
@@ -948,13 +967,13 @@ const ScanGradingModal = ({
                 {/* 좌: 학생 목록 / 우: 상세 — 각자 스크롤 */}
                 <div style={{ display: 'flex', gap: 12, alignItems: 'stretch', flex: 1, minHeight: 260 }}>
                   {/* ── 좌: 학생 × 문항 ── */}
-                  <div style={{ flex: '0 0 352px', background: 'white', border: '1px solid #E2E8F0', borderRadius: 12, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+                  <div style={{ flex: '0 0 392px', background: 'white', border: '1px solid #E2E8F0', borderRadius: 12, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
                     <div style={{ padding: '8px 12px', borderBottom: '1px solid #E2E8F0', background: '#F8FAFC', display: 'flex', alignItems: 'center', gap: 6 }}>
                       <strong style={{ fontSize: 'var(--neo-font-size-sm)', color: '#1E293B' }}>학생 {targetStudents.length}명</strong>
                       <span style={{ marginLeft: 'auto', display: 'flex', gap: 4 }}>
                         {questionList.map((q) => (
                           <span key={q.id}
-                            style={{ width: 66, textAlign: 'center', fontSize: 'var(--neo-font-size-xs)', fontWeight: 800, color: '#64748B', whiteSpace: 'nowrap' }}>
+                            style={{ width: SLOT_CELL_W, textAlign: 'center', fontSize: 'var(--neo-font-size-xs)', fontWeight: 800, color: '#64748B', whiteSpace: 'nowrap' }}>
                             {q.title.replace(/\s+/g, '')}<span style={{ color: '#2A75F3' }}>({q.sheets}장)</span>
                           </span>
                         ))}
@@ -972,7 +991,7 @@ const ScanGradingModal = ({
                           </span>
                           <span style={{ display: 'flex', gap: 4 }}>
                             <span style={{
-                              width: questionList.length * 66 + (questionList.length - 1) * 4,
+                              width: questionList.length * SLOT_CELL_W + (questionList.length - 1) * 4,
                               padding: '2px 0', textAlign: 'center', borderRadius: 5,
                               fontSize: 'var(--neo-font-size-xs)', fontWeight: 800,
                               background: '#FEF2F2', border: '1px solid #FCA5A5', color: '#991B1B',
@@ -999,11 +1018,11 @@ const ScanGradingModal = ({
                                 const tok = SLOT_TOKEN[st];
                                 const ow = slotReplacedExisting(sl);
                                 const check = slotNeedsCheck(sl) || st !== 'ok';
-                                // 정상은 ✓로 조용히, 이상(초과·부족·미지정)만 글자로 드러낸다
+                                // 정상은 ✓로 조용히, 이상(답안지 초과·부족)만 글자로 드러낸다
                                 return (
                                   <span key={q.id}
                                     style={{
-                                      width: 66, padding: '2px 0', textAlign: 'center', borderRadius: 5,
+                                      width: SLOT_CELL_W, padding: '2px 0', textAlign: 'center', borderRadius: 5,
                                       fontSize: 'var(--neo-font-size-xs)', fontWeight: 800,
                                       background: st === 'ok' ? (ow ? '#FFF7ED' : '#F8FAFC') : tok.bg,
                                       border: check ? '2px solid #F59E0B' : `1px solid ${st === 'ok' ? (ow ? '#FDBA74' : '#E2E8F0') : tok.border}`,
@@ -1075,7 +1094,9 @@ const ScanGradingModal = ({
                                   {/* 정상이면 배지를 달지 않는다 — 손볼 곳만 눈에 띄게 */}
                                   {st !== 'ok' && (
                                     <span style={{ padding: '1px 8px', borderRadius: 999, background: tok.bg, border: `1px solid ${tok.border}`, color: tok.color, fontSize: 'var(--neo-font-size-xs)', fontWeight: 800 }}>
-                                      {tok.label}{st === 'missing' ? '' : ` ${sl.files.length}/${q.sheets}장`}
+                                      {/* [v4.6] 0장도 `부족 0/2장`으로 장수를 밝힌다 —
+                                          舊 `미지정`은 배지만 달고 기준 장수를 숨겼다 */}
+                                      {tok.label} {sl.files.length}/{q.sheets}장
                                     </span>
                                   )}
                                   {/* [v4.4] 舊 `기존 답안 교체` 칩 폐기 — 기존 답안이 카드로 직접 보이므로
@@ -1092,7 +1113,7 @@ const ScanGradingModal = ({
                                   {sl.files.map(fileCard)}
                                   {/* 기준 장수에 못 미치면 비어 있는 장을 카드 자리로 남겨 둔다.
                                       「몇 장째가 비었나」가 눈에 보이고, 그 자리에서 바로 미분류를 끌어올 수 있다.
-                                      미지정(0장)은 이 빈칸이 기준 장수만큼 생기는 경우일 뿐이다. */}
+                                      0장은 이 빈칸이 기준 장수만큼 생기는 경우일 뿐이다. */}
                                   {emptySheets.map((page) => (
                                     <div key={`empty-${page}`} style={{ padding: '10px', border: '1px dashed #F59E0B', borderRadius: 10, background: '#FFFBEB' }}
                                       onDragOver={(e) => e.preventDefault()}
@@ -1216,7 +1237,9 @@ const ScanGradingModal = ({
             )}
             {step === 'review' && (
               <>
-                <button onClick={() => setStep('upload')} style={{ padding: '9px 18px', borderRadius: 8, background: 'white', border: '1px solid #E2E8F0', color: '#475569', fontWeight: 700, fontSize: 'var(--neo-font-size-sm)', cursor: 'pointer' }}>← 파일 다시 선택</button>
+                <button onClick={() => { resetUploads(); setStep('upload'); }}
+                  title="업로드한 파일과 판별 결과를 모두 비우고 처음부터 다시 선택합니다."
+                  style={{ padding: '9px 18px', borderRadius: 8, background: 'white', border: '1px solid #E2E8F0', color: '#475569', fontWeight: 700, fontSize: 'var(--neo-font-size-sm)', cursor: 'pointer' }}>← 파일 다시 선택</button>
                 <button onClick={requestGrading} disabled={startBlocked}
                   style={{ padding: '9px 18px', borderRadius: 8, background: startBlocked ? '#CBD5E1' : '#2A75F3', border: 'none', color: 'white', fontWeight: 800, fontSize: 'var(--neo-font-size-sm)', cursor: startBlocked ? 'not-allowed' : 'pointer' }}
                   title={startBlocked ? startBlockReason : undefined}>
