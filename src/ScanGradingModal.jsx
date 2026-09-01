@@ -96,6 +96,8 @@ const ScanGradingModal = ({
   const [previewFileId, setPreviewFileId] = useState(null);
   // [v3.24] 3단 게이트 — 채점 직전 덮어쓰기 확인 다이얼로그
   const [confirmOverwrite, setConfirmOverwrite] = useState(false);
+  // [v4.7] 판별 직후 교체 의사를 한 번 묻는 창 (전체 스캔으로 기존 답안이 밀려난 경우)
+  const [confirmReplace, setConfirmReplace] = useState(false);
   // [v4.2] 리뷰 — 좌측 학생 목록에서 고른 대상. 학생 id 또는 'unassigned'(미분류 트레이)
   const [selectedKey, setSelectedKey] = useState(null);
   // [v4.10] 답안지 작업 팝오버 — 열린 메뉴와 그 버튼의 화면 좌표.
@@ -128,16 +130,22 @@ const ScanGradingModal = ({
   const slotKey = (studentId, questionNo) => `${studentId}:${questionNo}`;
 
   /* [v4.4] 기존 답안 행 — 판별 직후 슬롯에 올릴 때와, 교체를 되돌릴 때 **같은 함수**로 만든다.
-   * 한쪽만 바뀌면 「되돌렸는데 다른 카드가 올라온다」가 되므로 생성 지점을 하나로 묶는다. */
-  const buildExistingRow = (st, q) => ({
+   * 한쪽만 바뀌면 「되돌렸는데 다른 카드가 올라온다」가 되므로 생성 지점을 하나로 묶는다.
+   *
+   * [v4.7] `home{StudentId,QuestionNo}` — 이 답안이 원래 어느 자리의 것인지 항상 들고 다닌다.
+   * 스캔본에 밀려 미분류로 내려가도 제자리를 알고 있어야 [↩ 되돌리기]가 가능하다.
+   * `attach`가 false면 미분류로 만든다 (전체 스캔에서 그 자리를 스캔본이 이미 차지한 경우). */
+  const buildExistingRow = (st, q, attach = true) => ({
     fileId: `exist-${st.id}-${q.id}`,
-    fileName: `${st.name} 기존 답안`,
+    fileName: `${st.name} 기존 답안 · ${q.title}`,   // [v4.7] 문항까지 적어야 여러 건을 구분한다
     origin: 'existing',
+    homeStudentId: st.id,
+    homeQuestionNo: q.id,
     submitPath: st.id % 2 === 0 ? '키보드 입력' : '파일 업로드',
     submittedAt: '2026-08-30 14:12',
     ocrSheetCode: null, ocrStudentText: '', ocrNameText: '', ocrQuestionNo: null, ocrPageNo: null,
-    studentId: st.id,
-    questionNo: q.id,
+    studentId: attach ? st.id : null,
+    questionNo: attach ? q.id : null,
     sheetNo: null,
     studentInput: `${st.name} (${st.grade || ''})`.replace(' ()', ''),
     confidence: 'high',
@@ -241,9 +249,9 @@ const ScanGradingModal = ({
     const seed = files.length + 1;
     const plan = [];
     targetStudents.forEach((s, si) => {
-      // [v4.4] `답안 있음` 학생은 기존 답안이 슬롯을 채우므로 스캔을 만들지 않는다.
-      //   교체는 교사가 답안지 카드의 [⋯ → 파일 업로드]로 명시적으로 한다.
-      if (isAnswerStudent(s)) return;
+      /* [v4.7] `답안 있음` 학생도 스캔을 만든다 — 舊 v4.4의 「만들지 않는다」 폐기.
+       * 실제 운영에서 교사는 답안 유무를 가리지 않고 반 전체를 통째로 스캔하므로,
+       * 데모도 그 상황(= 교체 발생)을 그대로 재현해야 화면을 검증할 수 있다. */
       questionList.forEach((q, qi) => {
         // 시연용 결손: 3번째 학생의 마지막 문항은 통째로 누락
         if (si === 2 && qi === questionList.length - 1) return;  // 0장 → `부족 0/N장`
@@ -311,11 +319,20 @@ const ScanGradingModal = ({
         };
       });
       /* [v4.4] `답안 있음` 학생의 기존 답안을 **슬롯에 붙은 카드**로 함께 올린다.
-       * 스캔 답안지와 같은 자리에 나란히 서고, 교체는 카드의 [⋯ → 파일 업로드]로 한다.
-       * 기존 답안은 「장」이 아니라 「제출 1건」이므로 기준 장수와 비교하지 않는다(§4.5). */
-      const existingRows = answerStudents.flatMap((st) => questionList.map((q) => buildExistingRow(st, q)));
+       * 기존 답안은 「장」이 아니라 「제출 1건」이므로 기준 장수와 비교하지 않는다(§4.5).
+       *
+       * [v4.7] 전체 스캔 대응 — 교사는 보통 답안 유무를 가리지 않고 **반 전체를 통째로** 스캔한다.
+       * 그러면 `답안 있음` 학생 자리에도 스캔본이 붙는다. 이때 한 슬롯에 두 답안을 겹쳐 두면
+       * 「무엇으로 채점되는지」가 화면에도 코드에도 드러나지 않으므로, **스캔본을 자리에 두고
+       * 기존 답안은 미분류로 내린다.** 사라지지 않으므로 채점 전까지 언제든 되돌릴 수 있다. */
+      const taken = new Set(rows.filter((r) => r.studentId != null && r.questionNo != null)
+        .map((r) => slotKey(r.studentId, r.questionNo)));
+      const existingRows = answerStudents.flatMap((st) => questionList.map(
+        (q) => buildExistingRow(st, q, !taken.has(slotKey(st.id, q.id)))));
       setMatchResults([...rows, ...existingRows]);
       setStep('review');
+      // 교체가 발생하면 **판별 결과를 보여준 뒤** 교체 의사를 한 번 묻는다 (판별 전에 묻지 않는다)
+      if (existingRows.some((r) => r.studentId == null)) setConfirmReplace(true);
     }, 1500);
   };
 
@@ -330,16 +347,23 @@ const ScanGradingModal = ({
         nx.inferred = false;
         return nx;
       });
-      /* [v4.4] 교체 되돌리기 — `답안 있음` 학생의 슬롯을 비우면 기존 답안이 다시 올라온다.
-       * 이 복원이 없으면 잘못 교체한 순간 그 문항이 `부족`(0장)이 되어 채점 시작이 막히고
-       * (§5.6 v4.3), 교사에게 되돌릴 방법이 남지 않는다. */
-      const st = before && answerIdSet.has(before.studentId)
-        ? targetStudents.find((x) => x.id === before.studentId) : null;
-      const q = st ? questionList.find((x) => x.id === before.questionNo) : null;
-      if (!st || !q) return next;
-      const stillThere = next.some((r) => r.studentId === st.id && r.questionNo === q.id);
-      return stillThere ? next : [...next, buildExistingRow(st, q)];
+      /* [v4.7] 舊 자동 복원 폐기 — 기존 답안은 교체돼도 사라지지 않고 **미분류에 실체로 남는다.**
+       * 여기서 다시 만들어 붙이면 같은 답안이 둘이 된다. 복원은 교사가 [↩ 되돌리기]로 한다. */
+      return next;
     });
+  };
+
+  /* [v4.7] 교체 되돌리기 — 미분류에 내려온 기존 답안을 원래 자리로 올리고,
+   * 그 자리를 차지하고 있던 스캔본을 미분류로 내린다. 자리는 언제나 한쪽만 차지한다. */
+  const restoreExisting = (row) => {
+    const sid = row.homeStudentId; const qid = row.homeQuestionNo;
+    setMatchResults((prev) => prev.map((r) => {
+      if (r.fileId === row.fileId) return { ...r, studentId: sid, questionNo: qid };
+      if (r.origin !== 'existing' && r.studentId === sid && r.questionNo === qid) {
+        return { ...r, studentId: null, questionNo: null, sheetNo: null, studentInput: '', confidence: 'low', inferred: false };
+      }
+      return r;
+    }));
   };
 
   const confirmFile = (fileId) => {
@@ -349,6 +373,17 @@ const ScanGradingModal = ({
   // ─── 슬롯(학생 × 문항) 파생 ───
   const assigned = matchResults.filter((r) => r.studentId != null && r.questionNo != null);
   const unassigned = matchResults.filter((r) => r.studentId == null || r.questionNo == null);
+  /* [v4.7] 미분류 트레이는 성격이 다른 둘을 담는다 — 섞어 놓으면 「판별 실패」로 오해한다.
+   *  · unassignedScans   어느 자리에도 없는 스캔(판별 실패 + 되돌리기로 내려온 것). 채점되지 않는다
+   *  · replacedExistings 스캔본에 자리를 내준 기존 답안. 이상이 아니라 **교체의 결과**다 */
+  const unassignedScans = unassigned.filter((r) => r.origin !== 'existing');
+  const replacedExistings = unassigned.filter((r) => r.origin === 'existing');
+  // [v4.7] 교체 대상 **학생** 이름 — 한 학생이 여러 문항을 갖더라도 한 번만 적는다
+  const replacedStudentNames = [...new Set(replacedExistings.map((r) => r.homeStudentId))]
+    .map((id) => targetStudents.find((x) => x.id === id)?.name)
+    .filter(Boolean);
+  // 모두 되돌리기 — 교체 의사 확인창의 [기존 답안으로 채점]이 쓴다
+  const restoreAllExisting = () => replacedExistings.forEach(restoreExisting);
 
   const slots = [];
   const slotIndex = {};
@@ -441,9 +476,9 @@ const ScanGradingModal = ({
     const owner = targetStudents.find((x) => x.id === oldRow.studentId);
     setMatchResults((prev) => prev.flatMap((row) => {
       if (row.fileId === oldRow.fileId) {
-        // [v4.4] 기존 답안은 파일이 아니라 미분류로 내려갈 수 없다 — 교체되면 목록에서 사라진다
-        //   flatMap이므로 빈 배열을 돌려줘야 실제로 제거된다 (null을 돌려주면 그대로 남는다)
-        if (oldRow.origin === 'existing') return [];
+        /* [v4.7] 기존 답안도 **미분류로 내려간다** (舊 v4.4의 「목록에서 사라진다」 폐기).
+         * 사라지면 잘못 교체한 순간 복구 수단이 없고, 교사가 채점 전까지 무엇을 밀어냈는지
+         * 확인할 방법도 없다. 미분류에 남겨 두면 [↩ 되돌리기] 한 번으로 제자리로 간다. */
         return [{ ...row, studentId: null, questionNo: null, sheetNo: null, studentInput: '', confidence: 'low', inferred: false }];
       }
       if (row.fileId === newFileId) {
@@ -480,7 +515,15 @@ const ScanGradingModal = ({
       if (gone && gone.previewUrl) URL.revokeObjectURL(gone.previewUrl);
       return [...prev.filter((f) => f.id !== oldRow.fileId), entry];
     });
-    setMatchResults((prev) => [...prev.filter((x) => x.fileId !== oldRow.fileId), {
+    /* [v4.7] 밀려나는 쪽 처리 — 기존 답안은 **지우지 않고 미분류로 내린다.**
+     * 여기서 지우면 [⋯ → 파일 업로드]로 교체한 순간 학생 답안이 화면에서 사라져 되돌릴 수 없다. */
+    setMatchResults((prev) => [
+      ...prev.flatMap((x) => {
+        if (x.fileId !== oldRow.fileId) return [x];
+        if (x.origin !== 'existing') return [];
+        return [{ ...x, studentId: null, questionNo: null }];
+      }),
+      {
       fileId: entry.id,
       fileName: entry.name,
       ocrSheetCode: sheetCodeOf(oldRow.questionNo, oldRow.sheetNo ?? 1),
@@ -492,7 +535,8 @@ const ScanGradingModal = ({
       confidence: 'high',
       inferred: false,
       manual: true,
-    }]);
+      },
+    ]);
   };
 
   /**
@@ -756,7 +800,10 @@ const ScanGradingModal = ({
              */
             const slotMenu = ({ menuKey, label, row, sl, sheetNo, width, align }) => {
               const inputId = `scan-file-${menuKey}`;
-              const pool = unassigned.filter((u) => !row || u.fileId !== row.fileId);
+              /* [v4.7] 기존 답안은 **제 자리로만** 돌아간다 — 다른 학생·문항에 붙일 수 있으면
+               * 「A 학생의 기존 답안이 B 학생 답안으로 채점되는」 사고가 난다. 목록에서 뺀다.
+               * 되돌리기는 미분류 트레이 카드의 [↩ 되돌리기]가 전담한다. */
+              const pool = unassigned.filter((u) => u.origin !== 'existing' && (!row || u.fileId !== row.fileId));
               const open = openMenu && openMenu.key === menuKey;
               const close = () => setOpenMenu(null);
               const itemStyle = {
@@ -808,11 +855,13 @@ const ScanGradingModal = ({
                           ⬆ 파일 업로드
                         </button>
 
-                        {/* ② 연결 해제 — 붙어 있는 **스캔** 답안지만. 기존 답안은 미분류로 내려갈 수 없다 [v4.4] */}
-                        {row && row.origin !== 'existing' && (
+                        {/* ② 연결 해제 — [v4.7] 기존 답안도 미분류로 내려갈 수 있다.
+                            내려가도 사라지지 않고 트레이에서 [↩ 되돌리기]로 제자리에 돌아온다. */}
+                        {row && (
                           <>
                             <div style={dashed} />
                             <button onClick={() => { updateAssign(row.fileId, { studentId: null, questionNo: null, sheetNo: null, studentInput: '' }); close(); }}
+                              title={row.origin === 'existing' ? '기존 답안을 미분류로 내립니다 — 채점에서 빠지며, 트레이에서 되돌릴 수 있습니다' : undefined}
                               style={{ ...itemStyle, textAlign: 'center', border: '1px solid #FCA5A5', color: '#B91C1C', fontWeight: 800 }}>
                               ✕ 연결 해제
                             </button>
@@ -888,7 +937,14 @@ const ScanGradingModal = ({
                     {/* 붙어 있는 장은 공통 메뉴(⋯) — 기존 답안도 같은 메뉴로 스캔본 교체가 된다 [v4.4] */}
                     {r.studentId != null && r.questionNo != null
                       ? slotMenu({ menuKey: `card-${r.fileId}`, label: '⋯', row: r, width: 26 })
-                      : (
+                      : isExisting ? (
+                        /* [v4.7] 기존 답안은 파일이 아니라 삭제 대상이 아니다. 제자리로 돌리는 것만 가능하다 */
+                        <button onClick={() => restoreExisting(r)}
+                          title={`${r.fileName}을 원래 문항으로 되돌립니다 — 그 자리의 스캔본은 미분류로 내려갑니다`}
+                          style={{ background: 'white', border: '1px solid #2A75F3', color: '#2A75F3', borderRadius: 6, padding: '2px 8px', fontSize: 'var(--neo-font-size-xs)', fontWeight: 800, cursor: 'pointer', whiteSpace: 'nowrap' }}>
+                          ↩ 되돌리기
+                        </button>
+                      ) : (
                         <button onClick={() => handleRemoveFile(r.fileId)} title="파일 삭제" style={{ background: 'none', border: 'none', color: '#EF4444', cursor: 'pointer' }}>🗑</button>
                       )}
                   </div>
@@ -924,7 +980,10 @@ const ScanGradingModal = ({
                         <div style={{ height: 26, display: 'flex', alignItems: 'center', fontSize: 'var(--neo-font-size-xs)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={nameText}>
                           {picked
                             ? <span style={{ color: '#1E293B', fontWeight: 700 }}>{studentLabel(picked)}</span>
-                            : <span style={{ color: '#991B1B', fontWeight: 700 }}>미분류 · 채점 제외</span>}
+                            : isExisting
+                              /* [v4.7] 교체로 내려온 것이라 「판별 실패」와 구분해 적는다 */
+                              ? <span style={{ color: '#9A3412', fontWeight: 700 }}>스캔본으로 교체됨</span>
+                              : <span style={{ color: '#991B1B', fontWeight: 700 }}>미분류 · 채점 제외</span>}
                         </div>
                         <div style={{ height: 26, display: 'flex', alignItems: 'center', fontSize: 'var(--neo-font-size-xs)' }}>
                           {r.questionNo != null
@@ -932,7 +991,9 @@ const ScanGradingModal = ({
                                 {questionOptions().find((op) => op.value === questionValueOf(r))?.label
                                   || questionList.find((q) => q.id === r.questionNo)?.title}
                               </span>
-                            : <span style={{ color: '#94A3B8' }}>(미지정)</span>}
+                            : isExisting
+                              ? <span style={{ color: '#9A3412' }}>원래 자리 · {questionList.find((q) => q.id === r.homeQuestionNo)?.title}</span>
+                              : <span style={{ color: '#94A3B8' }}>(미지정)</span>}
                         </div>
                       </div>
                     </div>
@@ -987,7 +1048,16 @@ const ScanGradingModal = ({
                           style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 6, padding: '8px 12px', border: 'none', borderBottom: '1px solid #F1F5F9', borderLeft: `3px solid ${activeKey === trayKey ? '#DC2626' : 'transparent'}`, background: activeKey === trayKey ? '#FEF2F2' : 'white', cursor: 'pointer', textAlign: 'left' }}>
                           <span style={{ minWidth: 0, flex: 1 }}>
                             <span style={{ display: 'block', fontSize: 'var(--neo-font-size-sm)', fontWeight: 700, color: '#991B1B', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>🔴 미분류</span>
-                            <span style={{ display: 'block', fontSize: 'var(--neo-font-size-xs)', color: '#F87171', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>학생·문항 미확인</span>
+                            {/* [v4.7] 미연결 스캔과 교체된 기존 답안을 한 줄에 나눠 적는다 */}
+                            <span title={[unassignedScans.length ? `미연결 스캔 ${unassignedScans.length}장` : null,
+                                          replacedExistings.length ? `교체된 기존 답안 ${replacedExistings.length}건` : null]
+                                          .filter(Boolean).join(' · ')}
+                              style={{ display: 'block', fontSize: 'var(--neo-font-size-xs)', color: '#F87171', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                              {/* 칸이 좁아 축약한다 — 전체 문구는 title과 우측 패널 머리글에 있다 */}
+                              {[unassignedScans.length ? `스캔 ${unassignedScans.length}` : null,
+                                replacedExistings.length ? `교체 ${replacedExistings.length}` : null]
+                                .filter(Boolean).join(' · ')}
+                            </span>
                           </span>
                           <span style={{ display: 'flex', gap: 4 }}>
                             <span style={{
@@ -1045,16 +1115,28 @@ const ScanGradingModal = ({
                     {activeKey === trayKey ? (
                       <>
                         <div style={{ padding: '10px 14px', borderBottom: '1px solid #E2E8F0', background: '#FEF2F2' }}>
-                          <strong style={{ fontSize: 'var(--neo-font-size-base)', color: '#991B1B' }}>🔴 미분류 {unassigned.length}장</strong>
+                          <strong style={{ fontSize: 'var(--neo-font-size-base)', color: '#991B1B' }}>🔴 미분류 {unassigned.length}건</strong>
                           <div style={{ fontSize: 'var(--neo-font-size-xs)', color: '#991B1B', marginTop: 2 }}>
-                            학생 또는 문항을 판별하지 못했습니다. [👁]로 확인하고 오른쪽에서 직접 지정해 주세요. 지정하지 않으면 채점되지 않습니다.
+                            어느 문항에도 붙어 있지 않아 <strong>채점되지 않습니다.</strong> 아래 두 묶음은 성격이 다릅니다.
                           </div>
                         </div>
-                        {/* 문항 상세와 같은 열 수·같은 카드 크기로 깔아 화면이 튀지 않게 한다 */}
-                        <div style={{ flex: 1, overflowY: 'auto', padding: 12 }}>
-                          <div style={{ display: 'grid', gridTemplateColumns: `repeat(${Math.min(questionList.length, 3)}, minmax(0, 1fr))`, gap: 10, alignItems: 'start' }}>
-                            {unassigned.map(fileCard)}
-                          </div>
+                        {/* [v4.7] 문항 상세와 같은 열 수·같은 카드 크기로 깔되, **성격이 다른 두 묶음**을 나눠 놓는다.
+                            섞어 두면 교체된 기존 답안이 「판별 실패」로 읽혀 교사가 잘못 지정한다. */}
+                        <div style={{ flex: 1, overflowY: 'auto', padding: 12, display: 'flex', flexDirection: 'column', gap: 14 }}>
+                          {[
+                            { key: 'scan', rows: unassignedScans, title: `🔴 미연결 스캔 ${unassignedScans.length}장`, color: '#991B1B',
+                              desc: '학생·문항을 판별하지 못했거나, 기존 답안을 되돌리면서 자리에서 내려온 스캔입니다. [👁]로 확인한 뒤 해당 문항의 빈 자리에서 지정해 주세요.' },
+                            { key: 'exist', rows: replacedExistings, title: `📄 교체된 기존 답안 ${replacedExistings.length}건`, color: '#9A3412',
+                              desc: '스캔본이 그 자리를 대신하고 있습니다. 학생이 낸 답안으로 채점하려면 [↩ 되돌리기]를 누르세요 — 그 자리의 스캔본이 대신 여기로 내려옵니다.' },
+                          ].filter((g) => g.rows.length > 0).map((g) => (
+                            <div key={g.key}>
+                              <div style={{ fontSize: 'var(--neo-font-size-sm)', fontWeight: 800, color: g.color }}>{g.title}</div>
+                              <div style={{ fontSize: 'var(--neo-font-size-xs)', color: '#64748B', margin: '2px 0 8px', lineHeight: 1.6 }}>{g.desc}</div>
+                              <div style={{ display: 'grid', gridTemplateColumns: `repeat(${Math.min(questionList.length, 3)}, minmax(0, 1fr))`, gap: 10, alignItems: 'start' }}>
+                                {g.rows.map(fileCard)}
+                              </div>
+                            </div>
+                          ))}
                         </div>
                       </>
                     ) : activeStudent ? (
@@ -1159,8 +1241,8 @@ const ScanGradingModal = ({
                 {/* 덮어쓰기 안내 */}
                 {replacedSlots.length > 0 && (
                   <div style={{ padding: '8px 14px', background: '#FFF7ED', border: '1px solid #FDBA74', borderRadius: 8, fontSize: 'var(--neo-font-size-xs)', color: '#9A3412', lineHeight: 1.6 }}>
-                    🔄 <strong>{replacedSlots.length}건</strong>의 기존 답안을 스캔본으로 교체했습니다. 채점 시 해당 문항의 기존 답안이 스캔본으로 바뀝니다.
-                    되돌리려면 그 문항의 답안지를 <strong>[⋯ → 연결 해제]</strong>하세요 — 기존 답안이 다시 올라옵니다. 채점 시작 시 교체 대상을 한 번 더 확인합니다.
+                    🔄 <strong>{replacedSlots.length}건</strong>의 기존 답안이 스캔본으로 교체된 상태입니다. 이대로 채점하면 스캔본으로 채점됩니다.
+                    밀려난 기존 답안은 <strong>미분류에 그대로 남아 있으며</strong>, 좌측 <strong>[🔴 미분류]</strong>에서 <strong>[↩ 되돌리기]</strong>로 언제든 제자리에 돌릴 수 있습니다. 채점 시작 시 교체 대상을 한 번 더 확인합니다.
                   </div>
                 )}
               </div>
@@ -1366,6 +1448,37 @@ const ScanGradingModal = ({
           </div>
         );
       })()}
+
+      {/* [v4.7] 판별 직후 교체 의사 확인 — 전체 스캔으로 기존 답안이 밀려났을 때 1회.
+          판별 **결과를 보여준 뒤** 묻는다. 차단이 아니라 기본값(스캔본)을 그대로 둘지 묻는 것이고,
+          여기서 못 정해도 미분류 트레이에서 건별로 언제든 되돌릴 수 있다. */}
+      {confirmReplace && replacedExistings.length > 0 && (
+        <div onClick={(e) => { e.stopPropagation(); setConfirmReplace(false); }} style={{ position: 'fixed', inset: 0, background: 'rgba(15,23,42,0.6)', zIndex: 9800, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
+          <div onClick={(e) => e.stopPropagation()} style={{ background: 'white', borderRadius: 14, width: 520, maxWidth: '94vw', padding: '20px 22px', boxShadow: '0 20px 40px rgba(0,0,0,0.25)' }}>
+            <h3 style={{ margin: '0 0 8px', fontSize: 'var(--neo-font-size-lg)', fontWeight: 800, color: '#9A3412' }}>🔄 이미 답안이 있는 학생이 있습니다</h3>
+            {/* 건수가 아니라 **학생 수**로 센다 — 교사가 판단하는 단위는 「누구의 답안을 바꾸나」다 */}
+            <p style={{ margin: '0 0 12px', fontSize: 'var(--neo-font-size-sm)', color: '#475569', lineHeight: 1.7 }}>
+              스캔본 내용 중 <strong style={{ color: '#C2410C' }}>{replacedStudentNames.length}명</strong>의 학생이 이미 제출한 답안파일이 있습니다.
+            </p>
+            <div style={{ padding: '8px 12px', background: '#FFF7ED', border: '1px solid #FDBA74', borderRadius: 8, fontSize: 'var(--neo-font-size-sm)', color: '#9A3412', marginBottom: 14, lineHeight: 1.6, maxHeight: 120, overflowY: 'auto' }}>
+              대상 : {replacedStudentNames.join(', ')}
+            </div>
+            <p style={{ margin: '0 0 16px', fontSize: 'var(--neo-font-size-sm)', color: '#475569', lineHeight: 1.7 }}>
+              어느 쪽을 선택해도 나머지 답안은 <strong>미분류로 남아</strong> 채점 전까지 변경할 수 있습니다.
+            </p>
+            <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end', flexWrap: 'wrap' }}>
+              <button onClick={() => { restoreAllExisting(); setConfirmReplace(false); }}
+                style={{ padding: '9px 16px', borderRadius: 8, background: 'white', border: '1px solid #CBD5E1', color: '#475569', fontWeight: 700, fontSize: 'var(--neo-font-size-sm)', cursor: 'pointer' }}>
+                기존 답안으로 채점
+              </button>
+              <button onClick={() => setConfirmReplace(false)}
+                style={{ padding: '9px 16px', borderRadius: 8, background: '#EA580C', border: 'none', color: 'white', fontWeight: 800, fontSize: 'var(--neo-font-size-sm)', cursor: 'pointer' }}>
+                스캔파일로 교체
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* [v4.4] 실행 직전 게이트 — 교체한 건에 대해서만 확인 */}
       {confirmOverwrite && (
